@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        h1 {
+            font-family: 'Oswald', sans-serif;
+            background: #51080a;
+            color: #fff;
+            font-size: 20px;
+            padding: 10px;
+        }
+
+        h2 {
+            margin-top: 40px;
+            font-size: 1.5em;
+            border-bottom: 1px solid #aaa;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        h3 {
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        h4 {
+            margin-top: 10px;
+            font-size: 1.3em;
+        }
+
+        h5 {
+            font-family: 'Oswald', sans-serif;
+            color: #FAFAFA;
+            background-color: #51080a;
+            font-weight: 100;
+            font-size: 10px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            padding-left: 10px;
+            margin: 0;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+            margin: 20px 0;
+
+        }
+
+        img.displayed {
+            display: block;
+            margin-left: auto;
+            margin-right: auto
+        }
+
+        body {
+            padding: 0;
+            font-size: 13px;
+        }
+
+        #content {
+            padding: 8px;
+        }
+
+        .about {
+            display: none;
+        }
+
+        @media (min-width: 700px) {
+
+            #sidebar {
+                width: 250px;
+                padding: 10px;
+                height: 100%;
+                position: fixed;
+                left: 0;
+                top: 0;
+                background: #ddd;
+            }
+
+            .about {
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                left: 250px;
+                padding: 5px;
+                background: #fff;
+                border-top: 1px solid #ddd;
+                text-align: center;
+                display: block;
+            }
+
+            h1 {
+                margin: -10px -10px 0 -10px;
+            }
+
+            #content {
+                margin-left: 270px;
+                padding: 0;
+            }
+
+        }
+
+        .about a {
+            color: #51080a;
+        }
+
+        #sidebar ul.nav {
+            width: 100%;
+        }
+
+        #sidebar ul.nav > li {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            width: 100%;
+        }
+
+        #sidebar ul.nav > li > a {
+            font-weight: bold;
+        }
+
+        #sidebar ul.nav > li ul {
+            padding: 0 0 0 5px;
+            margin: 0;
+            list-style: none;
+        }
+
+        #myBtn {
+            display: none;
+            position: fixed;
+            bottom: 40px;
+            right: 10px;
+            z-index: 99;
+        }
+    </style>
+    <title>Amazon Pay Checkout für plentymarkets - Integrationsanleitung</title>
+</head>
+<body>
+<button onclick="topFunction()" id="myBtn" class="btn btn-primary" title="Go to top">Nach oben</button>
+
+<div class="wrapper">
+    <nav id="sidebar">
+        <h1>Amazon Pay Checkout für plentymarkets - Integrationsanleitung</h1>
+        <div style="margin-bottom:10px; padding:5px;">
+            <a href="https://www.alkim.de" style="color:#51080a;" target="_blank">powered by alkim media</a>
+        </div>
+        <ul class="nav">
+            <li>
+                <a href="#anchor_1">
+                    1. Einleitung
+                </a>
+            </li>
+            <li>
+                <a href="#anchor_2">
+                    2. Plugin-Setup
+                </a>
+                <ul>
+                    <li>
+                        <a href="#anchor_21">
+                            2.1 Plugin-Installation
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#anchor_22">
+                            2.2 Amazon Pay Account anlegen
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#anchor_23">
+                            2.3 Einrichtung in Sellercentral und Zugangsdaten
+                        </a>
+                        <ul>
+                            <li>
+                                <a href="#anchor_231">
+                                    2.3.1 Zugangsdaten eintragen
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#anchor_232">
+                                    2.3.2 IPN (Sofortbenachrichtigung)
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#anchor_24">
+                            2.4 Weitere Plugin-Konfiguration
+                        </a>
+                        <ul>
+                            <li>
+                                <a href="#anchor_241">
+                                    2.4.1 Grundeinstellungen
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#anchor_242">
+                                    2.4.2 Style
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#anchor_3">
+                    3. Ereignisaktionen
+                </a>
+                <ul>
+                    <li>
+                        <a href="#anchor_31">
+                            3.1 Amazon Pay Zahlung autorisieren
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#anchor_32">
+                            3.2 Vollständiger Einzug der Amazon Pay Zahlung
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#anchor_33">
+                            3.3 Amazon Pay Vorgang schließen
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#anchor_34">
+                            3.4 Erstattung der Amazon Pay Zahlung
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a href="#anchor_4">
+                    4. E-Mails
+                </a>
+            </li>
+            <li>
+                <a href="#anchor_5">
+                    5. Content Container & ShopBuilder
+                    <ul>
+                        <li>
+                            <a href="#anchor_51">
+                                5.1 Content Container
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#anchor_52">
+                                5.2 ShopBuilder
+                            </a>
+                        </li>
+                    </ul>
+                </a>
+            </li>
+            <li>
+                <a href="#anchor_6">
+                    6. Loslegen
+                </a>
+            </li>
+            <li>
+                <a href="#anchor_7">
+                    7. Häufige Fehler
+                </a>
+            </li>
+            <li>
+                <a href="#anchor_8">
+                    8. FAQ
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div id="content">
+        <h2 id="anchor_1">
+            Einleitung
+        </h2>
+        <div class="alert alert-danger">
+            TODO
+        </div>
+        <h2 id="anchor_2">
+            2. Plugin-Setup
+        </h2>
+        <h3 id="anchor_21">2.1 Plugin-Installation</h3>
+        <div>
+            <div class="alert alert-danger">
+                Die folgenden Links sind noch nicht korrekt.
+            </div>
+            Du erhältst das Amazon Pay Checkout Plugin für plentymarkets am einfachsten direkt im <a href="https://marketplace.plentymarkets.com/plugins/payment/AmazonLoginAndPay_5072" target="_blank">plentyMarketplace</a>.
+            Weitere Informationen zur Installation von Marketplace Plugins gibt es auch in den <a href="https://marketplace.plentymarkets.com/faq" target="_blank">FAQs</a>.<br/>
+            Für versierte Anwender steht natürlich auch die Einbindung über unser <a href="https://github.com/AlkimMedia/AmazonPay_Plenty" target="_blank">GitHub Repository</a> zur Verfügung.
+            <br/><br/>
+            Bitte denke wie bei allen Plugins daran, dass du es im richtigen Set für den jeweiligen Mandaten aktivierst und bereitstellst.
+            <br/><br/>
+            Außerdem muss das Plugin unbedingt im Plugin-Set des Hauptmandanten und allen verwendeten Backend-Plugin-Sets installiert werden und du solltest die neue Zahlungsart mit allen relevanten Kundenklassen verknüpfen (<i>Einrichtung</i> » <i>Kundenklasse</i>).
+        </div>
+        <h3 id="anchor_22">2.2 Amazon Pay Account anlegen</h3>
+        <div>
+            Wenn du noch keinen Amazon-Pay Account hast, kannst du dich <a href="https://payments-eu.amazon.com/register?spId=A1SGXK19QKIYNB&marketplaceId=A53RDEWN57UU5&language=de_DE&locale=de_DE&source=SPPD&ref=sp_de_ap_np_sp_AkPm_xx_xx_xx_Man" target="_blank" rel="noopener">hier registrieren</a>.
+        </div>
+        <h3 id="anchor_23">2.3 Einrichtung in Sellercentral und Zugangsdaten</h3>
+        <h4 id="anchor_231">2.3.1 Zugangsdaten eintragen</h4>
+        <div>
+            Wie du die Zugangsdaten am besten aus der Integration Central uebernimmst, siehst du in folgendem Video:
+            <video style="max-width:100%;" controls>
+                <source
+                        src="videos/sellercentral.mp4"
+                        type="video/mp4">
+            </video>
+        </div>
+        <h4 id="anchor_232">2.3.2 IPN (Sofortbenachrichtigung)</h4>
+        <div>
+            Die Einrichtung der IPN (Instant Payment Notification = Sofortbenachrichtigung) ermöglicht es, dass dein
+            plentymarkets-System in Echtzeit über Statusänderungen einer Zahlung informiert wird.
+            Wähle dazu den Menüpunkt <i>Einstellungen</i> » <i>Integrationseinstellungen</i> und hinterlege bei
+            "Händler-URL"
+            https://www.domain.com/payment/amazon-pay-ipn/ (www.domain.com bitte durch deine Shop-Domain ersetzen)
+
+            <img src="images/ipn.jpg"/>
+        </div>
+        <h3 id="anchor_24">2.4 Weitere Plugin-Konfiguration</h3>
+        <div>
+            Die weiteren Konfigurationsmöglichkeiten im plentymarkets-Plugin ermöglichen dir, das Verhalten des Plugins an deine Prozesse anzupassen.
+        </div>
+        <h4 id="anchor_241">2.4.1 Grundeinstellungen</h4>
+        <dl>
+            <dt>
+                Sandbox
+            </dt>
+            <dd>
+                Schaltet das Plugin in den Sandbox-Modus. Dabei werden keine echten Zahlungen ausgelöst. Bitte beachte,
+                dass es für den Sandbox-Modus in Sellercentral eigene Konfigurationsmöglichkeiten gibt.
+            </dd>
+            <dt>
+                Buttons verstecken (debug)
+            </dt>
+            <dd>
+                Versteckt die Buttons im Frontend mit CSS (display:none), sodass du im Frontend testen kannst, ohne dass
+                deine Kunden beeinträchtigt werden.
+            </dd>
+            <dt>
+                Art der Autorisierung
+            </dt>
+            <dd>
+                Hiermit kannst du einstellen, wann die Autorisierung der Zahlung durchgeführt werden soll. Wenn du keine
+                besonderen Anforderungen hast, solltest du es hier bei der Standard-Einstellung belassen.<br/>
+                Bei Auswahl der Standard-Einstellung versucht das Plugin, die Zahlung bereits während des Checkouts zu
+                autorisieren, um den Kunden im Fall einer eindeutigen Ablehnung zur Auswahl einer anderen Zahlungsart zu
+                bewegen.
+                In Ausnahmefällen kann es sein, dass die Autorisierungsanfrage nicht eindeutig beantwortet werden kann.
+                Dann wird die Bestellung trotzdem abgeschlossen und das Autorisierungsergebnis nachgereicht.
+
+            </dd>
+            <dt>
+                Art des Zahlungseinzugs
+            </dt>
+            <dd>
+                Hiermit kannst du einstellen, wann der Zahlungseinzug durchgeführt werden soll. In den allermeisten
+                Fällen ist der Einzug direkt nach Autorisierung die beste Wahl.
+            </dd>
+            <dt>Auftragsstatus nach erfolgreicher Autorisierung</dt>
+            <dd>Hier kannst du eine Status-ID hinterlegen (z.B. 5.0). Diese wird nach erfolgreicher Autorisierung
+                gesetzt, um zu signalisieren, dass die Ware versendet werden kann.
+                Um die Warenbestandsautomatik zu nutzen, kannst du hier auch "4/5" eintragen, damit der Status je nach Bestand auf 4.0 oder 5.0 gesetzt wird.
+            </dd>
+            <dt>
+                E-Mail-Adresse für Versandadresse verwenden
+            </dt>
+            <dd>
+                Wenn diese Einstellung aktiviert ist, wird die E-Mail-Adresse des Kunden in die Versandadresse aufgenommen (z.B. zur Übergabe an Paketdienste)
+            </dd>
+        </dl>
+        <h4 id="anchor_242">2.4.2 Style</h4>
+
+        <div>
+            Hier kannst du Einstellungen zum Aussehen der Amazon-Buttons treffen.
+        </div>
+        <h2 id="anchor_3">3. Ereignisaktionen</h2>
+        <div class="alert alert-danger">Die folgenden Screensots muessen ersetzt werden, weil sich der Plugin-Name geaendert hat - der Rest bleibt gleich.</div>
+        <div class="alert alert-warning">
+            Bei den Ereignisaktionen wird die Plugin-Konfiguration des Hauptmandanten geladen. Bitte trage die unter
+            <a href="#anchor_231">2.3.1</a> verwendeten Zugangsdaten deshalb auch im Plugin-Set des Hauptmandanten ein.
+        </div>
+        <h3 id="anchor_31">3.1 Amazon Pay Zahlung autorisieren</h3>
+        <div class="alert alert-danger">Existiert noch nicht</div>
+        <div>Diese Ereignisaktionen wird für den normalen Workflow nicht gebraucht und ist nur dann relevant, wenn
+            ungewöhnliche
+            Prozesse eine Autorisierung zu einem bestimmten Zeitpunkt erfordern, z.B. bei langfristigen
+            Vorbestellungen.<br/>
+            Unter normalen Umständen sollte in der Plugin-Konfiguration die Autorisierung "während des Checkouts"
+            gewählt
+            werden.
+        </div>
+        <h3 id="anchor_32">3.2 Vollständiger Einzug der Amazon Pay Zahlung</h3>
+        <div>Diese Ereignisaktion muss nur dann eingerichtet werden, wenn der Zahlungseinzug nicht "direkt nach Autorisierung" erfolgen soll. Sinnvoll ist eine Kopplung an den Versand, also z.B. an den Statuswechsel auf "[7] Warenausgang gebucht".
+            <br/><br/>
+            Das könnte z.&nbsp;B. so aussehen:<br/>
+            <img src="images/event_action_capture.jpg"/>
+        </div>
+        <h3 id="anchor_33">3.3 Amazon Pay Vorgang schließen</h3>
+        <div>Wenn du in der Plugin-Konfiguration nicht "Amazon Pay Vorgang bei komplettem Zahlungseinzug abschließen"
+            gewählt hast, solltest du diese Ereignisaktion einrichten, um dem Kunden zu signalisieren, dass du alle
+            Zahlungsvorgänge ausgeführt hast und er keine weiteren Zahlungseinzüge zu erwarten hat.
+        </div>
+        <h3 id="anchor_34">3.4 Erstattung der Amazon Pay Zahlung</h3>
+        <div>Um dem Kunden seine Zahlung im Fall einer Gutschrift zu erstatten, z.B. bei einer Retoure, solltest du
+            diese Ereignisaktion z.B. für den Statuswechsel einer Gutschrift oder die Anlage des Gutschriftdokuments einrichten. Die Aktion veranlasst eine Rückzahlung in
+            Höhe der Gutschrift, die du angelegt hast.
+            <br/><br/>
+            Das könnte z.&nbsp;B. so aussehen:<br/>
+            <img src="images/event_action_refund.jpg"/>
+        </div>
+        <br/>
+        <p style="text-align: center;"><a href="http://www.alkim.de" rel="noopener" target="_blank"
+                                          title="alkim media - eCommerce Agentur f&uuml;r modified eCommerce, xt:Commerce und Gambio GX2"><img
+                class="displayed" src="images/am-banner.png"
+                alt="alkim media - eCommerce Agentur f&uuml;r modified eCommerce, xt:Commerce und Gambio GX2"/></a></p>
+
+        <h2 id="anchor_4">4. E-Mails</h2>
+        <div class="alert alert-danger">Evtl. ueberfluessig?</div>
+        <div>
+            Da es passieren kann, dass Zahlungen des Kunden nach dem Abschluss des Checkout-Vorgangs abgelehnt werden,
+            solltest
+            du den Kunden darüber informieren. Dazu kannst du eine "E-Mail versenden"-Ereignisaktion an den
+            Auftragsstatus
+            koppeln, den du in der Plugin-Konfiguration unter "Auftragsstatus bei Ablehnung des Zahlungsmittels,
+            Kundenaktion
+            notwendig (vorläufig abgelehnte Zahlungen)" bzw. "Auftragsstatus bei vollständiger Ablehnung der Zahlung mit
+            Amazon
+            Pay (endgültig abgelehnte Zahlungen)" gesetzt hast.
+        </div>
+        <div>
+            Du findest dafür hier zwei Vorlagen:<br/>
+            <a href="https://www.alkim.de/download/content/AmazonPayPlenty/amazon_soft_decline.pdf" target="_blank">Vorläufige
+                Ablehnung</a><br/>
+            <a href="https://www.alkim.de/download/content/AmazonPayPlenty/amazon_hard_decline.pdf" target="_blank">Endgültige
+                Ablehnung</a>
+        </div>
+
+        <h2 id="anchor_5">5. Content Container und ShopBuilder</h2>
+        <h3 id="anchor_51">5.1 Content Container</h3>
+        Damit das Plugin im Frontend deines Shops erscheint, musst du in deinem plentymarkets Backend unter <i>CMS</i> »
+        <i>Container-Verknüpfungen</i>
+        folgende Zuordnungen vornehmen:<br/><br/>
+
+        <div class="card">
+            <div class="card-header">
+                Amazon Pay Checkout - Button (empfohlen)
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i>
+                        <b>Hinweis</b>:
+                        Dieser Content erzeugt den Button, der den Kunden zum Amazon Checkout weiterleitet.
+                        Grundsätzlich kannst du ihn überall platzieren, wo er dir sinnvoll erscheint. Die folgende Liste
+                        gibt Vorschläge, aber insbesondere, ob du ihn bei "Shopping cart" und "Shopping cart preview"
+                        eher vor oder nach dem normalen Checkout-Button anzeigen möchtest, ist natürlich dir überlassen
+                    </i>
+                </div>
+                ✓ Shopping cart: After "Checkout" button<br/>
+                ✓ Shopping cart overlay: Extend buttons<br/>
+                ✓ Shopping cart preview: After "Checkout" button<br/>
+            </div>
+        </div>
+        <br/>
+        <div class="card">
+            <div class="card-header">
+                Amazon Pay Checkout - Button auf Artikelseite (Schnellkauf)
+            </div>
+            <div class="card-body">
+                ✓ Single item: After "Add to shopping cart" button
+            </div>
+        </div>
+        <br/>
+        <div class="card">
+            <div class="card-header">
+                "Amazon Pay Login - Button (empfohlen)
+            </div>
+            <div class="card-body">
+                ✓ Login overlay: Container in a row with the buttons<br/>
+                ✓ Registration overlay: Container in a row with the buttons
+            </div>
+        </div>
+        <br/>
+        <div class="card">
+            <div class="card-header">
+                Amazon Login & Pay - JavaScript <b>(Pflicht)</b>
+            </div>
+            <div class="card-body">
+                ✓ Script loader: After scripts loaded
+            </div>
+        </div>
+        <h3 id="anchor_52">5.2 ShopBuilder</h3>
+        Um die Amazon Buttons auf Seiten einzubinden, die mit dem ShopBuilder gestaltet wurden, kann das Code-Element verwendet werden.
+        <div class="card">
+            <div class="card-header">
+                Login-Button
+            </div>
+            <div class="card-body">
+                Verwende diesen Code für einen Login-Button, der ein Kundenkonto anlegt, aber den Kunden nicht notwendigerweise zur Kasse führt:
+                <br/><br/>
+
+                <pre><code>&lt;div class="amazon-login-button"&gt;&lt;/div&gt;</code></pre>
+            </div>
+        </div>
+        <br>
+        <div class="card">
+            <div class="card-header">
+                Checkout-Button
+            </div>
+            <div class="card-body">
+                Verwende diesen Code für einen Checkout-Button, der den Amazon Pay Checkout einleitet:
+                <br/><br/>
+
+                <pre><code>&lt;div class="amazon-pay-button"&gt;&lt;/div&gt;</code></pre>
+            </div>
+        </div>
+        <h2 id="anchor_6">6. Loslegen</h2>
+        <div>
+            Damit sollte alles erledigt sein, um deinen Kunden ein reibungsloses Amazon Pay Einkaufserlebnis zu
+            bieten.
+            <br/>
+            Wenn du Fragen, Probleme oder Anregungen hast, kontaktiere uns am besten im plentymarkets Forum in
+            <a href="https://forum.plentymarkets.com/c/non-plenty-plugins/amazon-pay" target="_blank">dieser Kategorie</a>.
+        </div>
+
+        <h2 id="anchor_7">7. Häufige Fehler</h2>
+
+        <h2 id="anchor_8">8. FAQ</h2>
+        <h4>Warum sind die Adressfelder manchmal falsch befüllt? (z.B. Straße als Firmenname)</h4>
+        <div>Die Adresse (einschließlich Firmenname) wird von Amazon ohne explizite Kennzeichnung in bis zu 3 Zeilen aufgeteilt. Das Plugin teilt diese nach Best Practice in die Adressfelder von plentymarkets auf, kann aber leider keine 100%ige Zuordnung garantieren.</div>
+
+
+        <div style="text-align: center; margin-top:40px;">
+            <b>Impressum</b><br/>Verantwortlich für die Inhalte dieser Webseite gemäß § 6 Teledienstgesetz
+            (tdg): Fa.
+            alkim media •
+            Inhaber: Frau Thekla Alkim • Perleberger Straße 62b • 16866 Kyritz • E-Mail: info@alkim.de •
+            Telefon:
+            033971-604480
+            • Telefax: 033971-32263
+        </div>
+        <p style="text-align: center;"><a href="http://www.alkim.de" target="_blank"
+                                          title="alkim media - eCommerce Agentur f&uuml;r modified eCommerce, xt:Commerce und Gambio GX2"><img
+                class="displayed" src="images/am-banner.png"
+                alt="alkim media - eCommerce Agentur f&uuml;r modified eCommerce, xt:Commerce und Gambio GX2"/></a>
+        </p>
+        <br/><br/>
+    </div>
+</div>
+<div class="about">
+    © alkim media • info@alkim.de • <a href="https://www.alkim.de" target="_blank">www.alkim.de</a>
+</div>
+
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+<script>
+    // When the user scrolls down 20px from the top of the document, show the button
+    window.onscroll = function () {
+        scrollFunction()
+    };
+
+    function scrollFunction() {
+        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            document.getElementById("myBtn").style.display = "block";
+        } else {
+            document.getElementById("myBtn").style.display = "none";
+        }
+    }
+
+    // When the user clicks on the button, scroll to the top of the document
+    function topFunction() {
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+    }
+</script>
+</body>
+</html>
