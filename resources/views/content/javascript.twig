@@ -1,0 +1,58 @@
+<style>
+    .amazon-pay-button, .amzLoginButton {
+    {%  if config('AmazonLoginAndPay.hideButtons') == "true" %} display: none !important;
+    {%  endif %}
+    }
+
+    .amazon-pay-shipping-address ~ .shipping-addresses-select {
+        display: none !important;
+    }
+
+    #add-item-to-basket-overlay .amazon-pay-button-wrapper {
+        padding: 0 1rem 1rem 1rem;
+    }
+
+    #add-item-to-basket-overlay .amazon-pay-button {
+        width: 10rem;
+        float: right;
+    }
+
+    .basket-preview-footer .amazon-pay-button {
+        max-width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .amazon-login-button {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .page-login .amazon-login-button {
+        max-width: 150px;
+        margin-right: 10px;
+    }
+
+    .page-basket .amazon-pay-button {
+        margin-top: 10px
+    }
+
+</style>
+
+<script src="https://static-eu.payments-amazon.com/checkout.js"></script>
+<script type="text/javascript" charset="utf-8">
+    var AmazonPayConfiguration = {
+        merchantId: '{{ config('AmazonPayCheckout.merchantId') }}',
+        checkoutSessionId: '{{ checkoutSessionId }}',
+        paymentMethodId: '{{ paymentMethodId }}',
+        createCheckoutSessionUrl: '{{ urls.createCheckoutSession }}',
+        ledgerCurrency: {% if  config('AmazonPayCheckout.accountCountry') == 'DE' %}'EUR'{% else %}'GBP'{% endif %},
+        loginPayload: '{{ loginPayload|raw }}',
+        loginSignature: '{{ loginSignature }}',
+        publicKeyId: '{{ config('AmazonPayCheckout.publicKeyId') }}',
+        isSandbox:{{ config('AmazonPayCheckout.sandbox') }},
+        language: 'de_DE',
+        buttonColor: '{{ config('AmazonPayCheckout.payButtonColor') }}'
+    };
+</script>
+<script src="{{ plugin_path('AmazonPayCheckout') }}/js/amazon-pay.js"></script>
+

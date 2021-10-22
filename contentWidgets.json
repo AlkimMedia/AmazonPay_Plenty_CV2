@@ -1,0 +1,22 @@
+[
+  {
+    "identifier": "AmazonPayCheckout::CheckoutButtonWidget",
+    "label": "Widget.checkoutButtonLabel",
+    "previewImageURL": "/images/amazon_pay_logo.png",
+    "type": "static",
+    "categories": [],
+    "position": 1050,
+    "widgetClass": "AmazonPayCheckout\\Widgets\\CheckoutButtonWidget",
+    "settings": {}
+  },
+  {
+    "identifier": "AmazonPayCheckout::LoginButtonWidget",
+    "label": "Widget.loginButtonLabel",
+    "previewImageURL": "/images/amazon_pay_logo.png",
+    "type": "static",
+    "categories": [],
+    "position": 1060,
+    "widgetClass": "AmazonPayCheckout\\Widgets\\LoginButtonWidget",
+    "settings": {}
+  }
+]

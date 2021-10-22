@@ -1,0 +1,66 @@
+{
+  "name": "AmazonPayCheckout",
+  "namespace": "AmazonPayCheckout",
+  "marketplaceName": {
+    "de": "Amazon Pay Checkout ",
+    "en": "Amazon Pay Checkout"
+  },
+  "description": "The official Amazon Pay plugin for plentymarkets",
+  "shortDescription": {
+    "de": "Das offizielle, von alkim media (Certified Developer Amazon Pay) entwickelte Amazon Pay Plugin für den Ceres Webshop (plentymarkets 7)",
+    "en": "The official Amazon Pay plugin developed by alkim media (Certified Developer Amazon Pay) for Ceres (plentmarkets 7)."
+  },
+  "type": "payment",
+  "categories": [
+    "3519"
+  ],
+  "version": "0.0.1",
+  "license": "AGPL-3.0",
+  "pluginIcon": "icon_plugin_xs.png",
+  "price": 0.0,
+  "keywords": [
+    "amazon",
+    "plentymarkets",
+    "payment"
+  ],
+  "author": "alkim media",
+  "authorIcon": "icon_author_xs.png",
+  "email": "plentymarkets@alkim.de",
+  "phone": "+49 33971 604480",
+  "serviceProvider": "AmazonPayCheckout\\Providers\\ServiceProvider",
+  "containers": [],
+  "dataProviders": [
+    {
+      "key": "AmazonPayCheckout\\Providers\\DataProviderCheckoutButton",
+      "name": "Amazon Pay Checkout - Button",
+      "description": "Amazon Pay Checkout - Button",
+      "defaultLayoutContainer": "Ceres::Basket.AfterCheckoutButton"
+    },
+    {
+      "key": "AmazonPayCheckout\\Providers\\DataProviderArticleCheckoutButton",
+      "name": "Amazon Pay Checkout - Button auf Artikelseite (Schnellkauf)",
+      "description": "Amazon Pay Checkout - Button auf Artikelseite (Schnellkauf)",
+      "defaultLayoutContainer": "Ceres::SingleItem.AfterAddToBasket"
+    },
+    {
+      "key": "AmazonPayCheckout\\Providers\\DataProviderLoginButton",
+      "name": "Amazon Pay Login - Button",
+      "description": "Amazon Pay Login - Button",
+      "defaultLayoutContainer": "Ceres::LoginOverlay.ExtendOverlayButtons"
+    }
+  ],
+  "javaScriptFiles": [
+    "main.js"
+  ],
+  "require": {
+    "IO": ">=4.0.0",
+    "Ceres": ">=4.0.0"
+  },
+  "dependencies": {
+    "mkreusch/amazon-pay-api-sdk-php-extension": "0.1.0",
+    "aws/aws-php-sns-message-validator": "^1.6"
+  },
+  "runOnBuild": [
+    "AmazonPayCheckout\\Migrations\\CreateTransactionTable"
+  ]
+}
