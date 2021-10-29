@@ -2,6 +2,7 @@
 
 namespace AmazonPayCheckout\Methods;
 
+use AmazonPayCheckout\Helpers\ConfigHelper;
 use Plenty\Modules\Payment\Method\Services\PaymentMethodBaseService;
 use Plenty\Plugin\Application;
 
@@ -64,24 +65,25 @@ class PaymentMethod extends PaymentMethodBaseService
 
     public function getBackendIcon(): string
     {
-        return '';
+        return $this->getIcon();
     }
 
     public function isActive(): bool
     {
-        return true;
+        /** @var ConfigHelper $configHelper */
+        $configHelper = pluginApp(ConfigHelper::class);
+        return $configHelper->isConfigComplete();
     }
 
     public function getIcon(string $lang = ""): string
     {
         /** @var Application $application */
         $application = pluginApp(Application::class);
-
         return $application->getUrlPath('AmazonPayCheckout') . static::ICON;
     }
 
     public function getDescription(string $lang = ""): string
     {
-        return 'Eine Beschreibung';
+        return '';
     }
 }

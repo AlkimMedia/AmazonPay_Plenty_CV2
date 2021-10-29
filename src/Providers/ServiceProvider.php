@@ -37,7 +37,6 @@ class ServiceProvider extends ServiceProviderParent
         EventProceduresService $eventProceduresService
     )
     {
-        //$this->log(__CLASS__, __METHOD__, 'start', '');
         $paymentMethodId = $paymentMethodHelper->createMopIfNotExistsAndReturnId(); //TODO move to migration
         $payContainer->register(PaymentMethod::PLUGIN_KEY . '::' . PaymentMethod::PAYMENT_KEY, PaymentMethod::class,
             [
@@ -112,6 +111,11 @@ class ServiceProvider extends ServiceProviderParent
 
         $eventDispatcher->listen('Ceres.LayoutContainer.Script.AfterScriptsLoaded',
             function (LayoutContainer $container){
+                /** @var ConfigHelper $configHelper */
+                $configHelper = pluginApp(ConfigHelper::class);
+                if(!$configHelper->isConfigComplete()){
+                    return;
+                }
                 /** @var DataProviderJavascript $dataProvider */
                 $dataProvider = pluginApp(DataProviderJavascript::class);
                 $container->addContent($dataProvider->call(pluginApp(Twig::class)));

@@ -153,7 +153,7 @@ class MainWizard extends WizardProvider
                 ],
                 'sandboxStep' => [
                     'title' => 'Wizard.sandboxStepTitle',
-                    'description' => 'Wizard.debugStepDescription',
+                    'description' => 'Wizard.sandboxStepDescription',
                     'condition' => true,
                     'sections' => [
                         [
@@ -319,6 +319,7 @@ class MainWizard extends WizardProvider
                 ],
                 'eventsStep' => [
                     'title' => 'Wizard.eventsStepTitle',
+                    'description' => 'Wizard.eventsStepDescription',
                     'condition' => true,
                     'sections' => [
                         [

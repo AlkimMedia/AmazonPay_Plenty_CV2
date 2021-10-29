@@ -33,17 +33,30 @@ class ConfigHelper
     {
         return [
             'public_key_id' => $this->getConfigurationValue('publicKeyId'),
-            'private_key'   => $this->getConfigurationValue('privateKey'),
-            'region'        => $this->getConfigurationValue('accountCountry'),
-            'sandbox'       => (bool)$this->getConfigurationValue('sandbox'),
+            'private_key' => $this->getConfigurationValue('privateKey'),
+            'region' => $this->getConfigurationValue('accountCountry'),
+            'sandbox' => (bool)$this->getConfigurationValue('sandbox'),
         ];
 
+    }
+
+    public function isConfigComplete()
+    {
+        return
+            !empty($this->getConfigurationValue('publicKeyId'))
+            &&
+            !empty($this->getConfigurationValue('privateKey'))
+            &&
+            !empty($this->getConfigurationValue('accountCountry'))
+            &&
+            !empty($this->getConfigurationValue('sandbox'));
     }
 
     public function getConfigurationValue($key)
     {
         return $this->configRepository->get('AmazonPayCheckout.' . $key);
     }
+
     public function getUrl($path)
     {
         return $this->getAbsoluteUrl($path);
@@ -54,9 +67,9 @@ class ConfigHelper
         /** @var WebstoreConfigurationService $webstoreConfigurationService */
         $webstoreConfigurationService = pluginApp(WebstoreConfigurationService::class);
         /** @var SessionStorageService $sessionStorage */
-        $sessionStorage  = pluginApp(SessionStorageService::class);
+        $sessionStorage = pluginApp(SessionStorageService::class);
         $defaultLanguage = $webstoreConfigurationService->getDefaultLanguage();
-        $lang            = $sessionStorage->getLang();
+        $lang = $sessionStorage->getLang();
 
         $includeLanguage = $lang !== null && $lang !== $defaultLanguage;
         /** @var UrlQuery $urlQuery */
@@ -107,7 +120,7 @@ class ConfigHelper
 
     public function getPayExistingOrderCheckoutResultReturnUrl($orderId)
     {
-        return $this->getAbsoluteUrl('payment/amazon-pay-existing-order-process').'?order_id='.$orderId;
+        return $this->getAbsoluteUrl('payment/amazon-pay-existing-order-process') . '?order_id=' . $orderId;
     }
 
 
@@ -116,7 +129,8 @@ class ConfigHelper
         return 'Created by Alkim Media, plentymarkets, V*'; //TODO
     }
 
-    public function getStoreName():string{
+    public function getStoreName(): string
+    {
         return ''; //TODO //(strlen($storeName) > 50 ? substr($storeName, 0, 46) . ' ...' : $storeName);
     }
 

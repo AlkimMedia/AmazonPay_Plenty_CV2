@@ -42,6 +42,9 @@ class CheckoutHelper
         $result = [];
         /** @var Country $country */
         foreach ($countryList as $country) {
+            if(in_array($country->isoCode2, ['EA'])){
+                continue;
+            }
             $result[] = $country->isoCode2;
         }
         return $result;
@@ -265,7 +268,7 @@ class CheckoutHelper
 
         $this->log(__CLASS__, __METHOD__, 'shippingAddress', '', ['address' => $shippingAddress, 'country' => $country]);
 
-        //TODO leve address empty if pay only
+        //TODO leave address empty if pay only
         return [
             'webCheckoutDetails' => [
                 'checkoutResultReturnUrl' => $existingOrder === null ? $configHelper->getCheckoutResultReturnUrl() : $configHelper->getPayExistingOrderCheckoutResultReturnUrl($existingOrder->id),
