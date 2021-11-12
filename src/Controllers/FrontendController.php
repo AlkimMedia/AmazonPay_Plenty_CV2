@@ -22,7 +22,13 @@ class FrontendController extends Controller
 {
     use LoggingTrait;
 
+    /**
+     * @var Response
+     */
     public $response;
+    /**
+     * @var Request
+     */
     public $request;
     /**
      * @var Twig

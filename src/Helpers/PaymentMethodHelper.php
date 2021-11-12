@@ -3,7 +3,6 @@
 namespace AmazonPayCheckout\Helpers;
 
 use AmazonPayCheckout\Methods\PaymentMethod;
-use Plenty\Modules\Frontend\Contracts\Checkout;
 use Plenty\Modules\Payment\Method\Contracts\PaymentMethodRepositoryContract;
 
 class PaymentMethodHelper

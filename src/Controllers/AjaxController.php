@@ -14,12 +14,10 @@ class AjaxController extends Controller
 {
     use LoggingTrait;
 
+    /**
+     * @var Response
+     */
     public $response;
-    public $request;
-    public $helper;
-    public $transactionHelper;
-    public $checkoutHelper;
-    public $customerService;
 
     public function __construct(Response $response)
     {
@@ -32,7 +30,7 @@ class AjaxController extends Controller
         $this->log(__CLASS__, __METHOD__, 'start', '👩 create checkout session');
         /** @var \AmazonPayCheckout\Helpers\ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-        $response  = [];
+        $response = [];
         try {
             $response['amazonCheckoutSessionId'] = $apiHelper->createCheckoutSession();
         } catch (Exception $e) {
@@ -46,7 +44,7 @@ class AjaxController extends Controller
     public function getTable(Twig $twig, TransactionRepositoryContract $transactionRepository)
     {
         $transactions = $transactionRepository->getTransactions([['id', '>', 0]]);
-        $html         = '<table>';
+        $html = '<table>';
         foreach ($transactions as $transaction) {
             $html .= '<tr>';
             foreach ($transaction as $k => $v) {

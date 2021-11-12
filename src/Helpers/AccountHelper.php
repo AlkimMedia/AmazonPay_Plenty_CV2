@@ -50,7 +50,7 @@ class AccountHelper
      */
     public function setShippingAddress($checkoutSession)
     {
-        /** @var \AmazonPayCheckout\Helpers\ConfigHelper $configHelper */
+        /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
         $this->log(__CLASS__, __METHOD__, 'start');
         $formattedShippingAddress = null;

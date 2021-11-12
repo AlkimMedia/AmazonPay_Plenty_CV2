@@ -20,7 +20,7 @@ class OrderHelper
 {
     use LoggingTrait;
 
-    public function createPaymentObject($amount, $status, $transactionId, $comment = '', $dateTime = null, $type = Payment::PAYMENT_TYPE_CREDIT, $transactionType = Payment::TRANSACTION_TYPE_BOOKED_POSTING, $currency = 'EUR')
+    public function createPaymentObject($amount, $status, $transactionId, $comment = '', $dateTime = null, $type = Payment::PAYMENT_TYPE_CREDIT, $transactionType = Payment::TRANSACTION_TYPE_BOOKED_POSTING, $currency = 'EUR'): Payment
     {
         $this->log(__CLASS__, __METHOD__, 'start', '', [$amount, $status, $transactionId, $comment, $dateTime, $type, $transactionType, $currency]);
         if ($dateTime === null) {
@@ -150,7 +150,7 @@ class OrderHelper
                     /** @var OrderProperty $existing */
                     $existing = $orderPropertyRepository->findByOrderId($orderId, OrderPropertyType::EXTERNAL_ORDER_ID);
                     $existingArray = $existing->toArray();
-                    if ($existing && !empty($existingArray)) {
+                    if (!empty($existingArray)) {
                         $loggable->log(__CLASS__, __METHOD__, 'existing', '', [$existingArray]);
                         return;
                     }

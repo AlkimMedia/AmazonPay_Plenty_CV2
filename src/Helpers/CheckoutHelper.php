@@ -56,10 +56,10 @@ class CheckoutHelper
         $frontendPaymentMethodRepository = pluginApp(FrontendPaymentMethodRepositoryContract::class);
         $paymentMethods = $frontendPaymentMethodRepository->getCurrentPaymentMethodsList();
 
-        /** @var \AmazonPayCheckout\Helpers\PaymentMethodHelper $paymentMethodHelper */
+        /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
 
-        /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
+        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
 
         $amazonPayPaymentMethod = $paymentMethodHelper->createMopIfNotExistsAndReturnId();
@@ -75,7 +75,7 @@ class CheckoutHelper
     {
 
         $this->log(__CLASS__, __METHOD__, 'start', '', ['order' => $order, 'session' => $checkoutSessionId]);
-        /** @var \AmazonPayCheckout\Helpers\ApiHelper $apiHelper */
+        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
 
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
@@ -129,9 +129,9 @@ class CheckoutHelper
 
     public function setCurrentPaymentMethodId()
     {
-        /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
+        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
-        /** @var \AmazonPayCheckout\Helpers\PaymentMethodHelper $paymentMethodHelper */
+        /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
 
         return $checkout->setPaymentMethodId($paymentMethodHelper->createMopIfNotExistsAndReturnId());
@@ -142,7 +142,7 @@ class CheckoutHelper
      */
     public function getShippingAddress()
     {
-        /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
+        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
         $shippingAddressId = $checkout->getCustomerShippingAddressId();
         if ($shippingAddressId) {
@@ -156,9 +156,9 @@ class CheckoutHelper
         return null;
     }
 
-    public function isCurrentPaymentMethodAmazonPay()
+    public function isCurrentPaymentMethodAmazonPay(): bool
     {
-        /** @var \AmazonPayCheckout\Helpers\PaymentMethodHelper $paymentMethodHelper */
+        /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
 
         if ($paymentMethodHelper->createMopIfNotExistsAndReturnId() != $this->getCurrentPaymentMethodId()) {
@@ -176,15 +176,15 @@ class CheckoutHelper
         return true;
     }
 
-    public function getCurrentPaymentMethodId()
+    public function getCurrentPaymentMethodId(): int
     {
-        /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
+        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
 
         return $checkout->getPaymentMethodId();
     }
 
-    public function hasOpenSession()
+    public function hasOpenSession(): bool
     {
         /** @var SessionStorageRepositoryContract $sessionStorageRepository */
         $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
@@ -196,7 +196,7 @@ class CheckoutHelper
         if (!empty(self::$sessionStatusCache[$checkoutSessionId])) {
             return true;
         }
-        /** @var \AmazonPayCheckout\Helpers\ApiHelper $apiHelper */
+        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
 
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
@@ -221,12 +221,13 @@ class CheckoutHelper
 
     public function setToSession($key, $value)
     {
+        /** @var FrontendSessionStorageFactoryContract $session */
         $session = pluginApp(FrontendSessionStorageFactoryContract::class);
         $session->getPlugin()->setValue($key, $value);
     }
 
     /**
-     * @param null|Order $existingOrder
+     * @param Order|null $existingOrder
      * @return array
      */
     public function getCheckoutSessionDataForDirectCheckout($existingOrder = null): array

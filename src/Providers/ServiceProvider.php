@@ -25,6 +25,7 @@ use Plenty\Modules\Wizard\Contracts\WizardContainerContract;
 use Plenty\Plugin\Events\Dispatcher;
 use Plenty\Plugin\ServiceProvider as ServiceProviderParent;
 use Plenty\Plugin\Templates\Twig;
+use Plenty\Plugin\Translation\Translator;
 
 class ServiceProvider extends ServiceProviderParent
 {
@@ -79,8 +80,14 @@ class ServiceProvider extends ServiceProviderParent
             function (LayoutContainer $container, $arguments) {
                 /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
                 $checkoutHelper = pluginApp(CheckoutHelper::class);
+                /** @var Translator $translator */
+                $translator = pluginApp(Translator::class);
                 if ($checkoutHelper->isCurrentPaymentMethodAmazonPay() && $checkoutHelper->hasOpenSession()) {
-                    $container->addContent('<b>Amazon Pay</b><div><a href="#" id="amazon-pay-change-payment">Zahlungsmittel &auml;ndern</a></div><div><a href="/payment/amazon-pay-unset-payment-method">Andere Zahlungsart</a></div><br><br>'); //TODO i18n
+                    $container->addContent('
+                        <div class="checkout-amazon-pay-logo-container mb-2 mt-2"><img src="https://amazon-pay-assets.s3.eu-central-1.amazonaws.com/logos/logo_default.svg" style="width: 180px; max-width:100%;"/></div>
+                        <div><a href="#" id="amazon-pay-change-payment">'.$translator->trans('AmazonPayCheckout::AmazonPay.changeAmazonPayPaymentMean').'</a></div>
+                        <div><a href="/payment/amazon-pay-unset-payment-method">'.$translator->trans('AmazonPayCheckout::AmazonPay.changePaymentMethod').'</a></div><br><br>'
+                    );
                 }
             });
 
@@ -128,16 +135,22 @@ class ServiceProvider extends ServiceProviderParent
             function (LayoutContainer $container, $arguments) {
                 /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
                 $checkoutHelper = pluginApp(CheckoutHelper::class);
+                /** @var Translator $translator */
+                $translator = pluginApp(Translator::class);
                 if ($checkoutHelper->isCurrentPaymentMethodAmazonPay() && $checkoutHelper->hasOpenSession()) {
                     if ($shippingAddress = $checkoutHelper->getShippingAddress()) {
                         $container->addContent('
-                        <div class="amazon-pay-shipping-address">
-                            <div>' . $shippingAddress->companyName . '</div>
-                            <div>' . $shippingAddress->firstName . ' ' . $shippingAddress->lastName . '</div>
-                            <div>' . $shippingAddress->street . ' ' . $shippingAddress->houseNumber . '</div>
-                            <div>' . $shippingAddress->postalCode . ' ' . $shippingAddress->town . '</div>
-                            <div>' . $shippingAddress->country->name . '</div>
-                       </div><br><a href="#" id="amazon-pay-change-address">Adresse &auml;ndern</a><br><br>');
+                        <div class="amazon-pay-shipping-address-container card mb-4" style="padding:1em;">
+                            <div class="amazon-pay-shipping-address">
+                                <div>' . $shippingAddress->companyName . '</div>
+                                <div>' . $shippingAddress->firstName . ' ' . $shippingAddress->lastName . '</div>
+                                <div>' . $shippingAddress->street . ' ' . $shippingAddress->houseNumber . '</div>
+                                <div>' . $shippingAddress->postalCode . ' ' . $shippingAddress->town . '</div>
+                                <div>' . $shippingAddress->country->name . '</div>
+                                <div class="amazon-pay-change-address-container" style="text-align: right;"><a href="#" id="amazon-pay-change-address">'.$translator->trans('AmazonPayCheckout::AmazonPay.changeAddress').'</a></div>
+                            </div>
+                       </div>
+                       ');
                     }
                 }
             });

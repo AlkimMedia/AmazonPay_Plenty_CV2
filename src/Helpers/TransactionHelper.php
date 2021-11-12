@@ -4,6 +4,7 @@ namespace AmazonPayCheckout\Helpers;
 
 use AmazonPayCheckout\Contracts\TransactionRepositoryContract;
 use AmazonPayCheckout\Models\Transaction;
+use AmazonPayCheckout\Struct\Charge;
 use AmazonPayCheckout\Struct\Refund;
 use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
@@ -15,7 +16,7 @@ class TransactionHelper
     use LoggingTrait;
 
     /**
-     * @var \AmazonPayCheckout\Contracts\TransactionRepositoryContract
+     * @var TransactionRepositoryContract
      */
     private $transactionRepository;
 
@@ -25,20 +26,21 @@ class TransactionHelper
     }
 
     /**
-     * @param \AmazonPayCheckout\Struct\Charge $charge
+     * @param Charge $charge
      * @param null|int $orderId
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function updateCharge($charge, $orderId = null)
+    public function updateCharge(Charge $charge, $orderId = null)
     {
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
         $chargeTransaction = $this->persistTransaction($charge, Transaction::TRANSACTION_TYPE_CHARGE, $orderId);
         $orderId = $chargeTransaction->order;
+
         if ($chargeTransaction->status === StatusDetails::CAPTURED && !empty($orderId)) {
             if (!$chargeTransaction->adminInformed) {
-                /** @var \AmazonPayCheckout\Helpers\OrderHelper $orderHelper */
+                /** @var OrderHelper $orderHelper */
                 $orderHelper = pluginApp(OrderHelper::class);
                 $payment = $orderHelper->createPaymentObject($charge->captureAmount->amount, Payment::STATUS_CAPTURED, $charge->chargeId, '', null, Payment::PAYMENT_TYPE_CREDIT, Payment::TRANSACTION_TYPE_BOOKED_POSTING, $charge->captureAmount->currencyCode);
                 $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $orderHelper->getOrder($orderId));
@@ -58,6 +60,11 @@ class TransactionHelper
     }
 
 
+    /**
+     * @param $refund
+     * @param null $orderId
+     * @throws Exception
+     */
     public function updateRefund($refund, $orderId = null)
     {
         $refundTransaction = $this->persistTransaction($refund, Transaction::TRANSACTION_TYPE_REFUND, $orderId);
@@ -65,7 +72,7 @@ class TransactionHelper
 
         if ($refundTransaction->status === StatusDetails::REFUNDED && !empty($orderId)) {
             if (!$refundTransaction->adminInformed) {
-                /** @var \AmazonPayCheckout\Helpers\OrderHelper $orderHelper */
+                /** @var OrderHelper $orderHelper */
                 $orderHelper = pluginApp(OrderHelper::class);
                 $payment = $orderHelper->createPaymentObject($refund->refundAmount->amount, Payment::STATUS_REFUNDED, $refund->refundId, '', null, Payment::PAYMENT_TYPE_DEBIT, Payment::TRANSACTION_TYPE_BOOKED_POSTING, $refund->refundAmount->currencyCode);
                 $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $orderHelper->getOrder($orderId));
@@ -76,7 +83,15 @@ class TransactionHelper
         }
     }
 
-    public function persistTransaction($transactionStruct, $type, $orderId = null, $paymentId = null)
+    /**
+     * @param $transactionStruct
+     * @param $type
+     * @param null $orderId
+     * @param null $paymentId
+     * @return Transaction
+     * @throws Exception
+     */
+    public function persistTransaction($transactionStruct, $type, $orderId = null, $paymentId = null): Transaction
     {
         /** @var Transaction $transaction */
         if ($type === Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION) {
@@ -107,7 +122,7 @@ class TransactionHelper
      *
      * @return Transaction
      */
-    protected function getChargePermissionTransaction($chargePermission)
+    protected function getChargePermissionTransaction($chargePermission): Transaction
     {
         $transaction = $this->getTransaction($chargePermission->chargePermissionId, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION);
         $transaction->amount = $chargePermission->limits->amountLimit->amount;
@@ -125,7 +140,7 @@ class TransactionHelper
      *
      * @return Transaction
      */
-    public function getTransaction(string $reference, string $type)
+    public function getTransaction(string $reference, string $type): Transaction
     {
 
         if ($transactions = $this->transactionRepository->getTransactions([['reference', '=', $reference], ['type', '=', $type]])) {
@@ -143,11 +158,11 @@ class TransactionHelper
     }
 
     /**
-     * @param \AmazonPayCheckout\Struct\Charge $charge
+     * @param Charge $charge
      *
      * @return Transaction
      */
-    protected function getChargeTransaction($charge)
+    protected function getChargeTransaction($charge): Transaction
     {
         $transaction = $this->getTransaction($charge->chargeId, Transaction::TRANSACTION_TYPE_CHARGE);
         $transaction->amount = $charge->chargeAmount->amount;
@@ -168,10 +183,10 @@ class TransactionHelper
 
     /**
      * @param Refund $refund
-     * @return mixed
+     * @return Transaction
      */
-    protected function getRefundTransaction($refund)
-        {
+    protected function getRefundTransaction(Refund $refund): Transaction
+    {
             $transaction = $this->getTransaction($refund->refundId, Transaction::TRANSACTION_TYPE_REFUND);
             $transaction->amount = (float)$refund->refundAmount->amount;
             $transaction->currency = $refund->refundAmount->currencyCode;
@@ -186,7 +201,7 @@ class TransactionHelper
      *
      * @return Transaction[]
      */
-    public function getOrderTransactions(int $orderId)
+    public function getOrderTransactions(int $orderId): array
     {
         return $this->transactionRepository->getTransactions([['order', '=', $orderId]]);
     }

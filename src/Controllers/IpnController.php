@@ -15,15 +15,20 @@ class IpnController extends Controller
 {
     use LoggingTrait;
 
-    private $response;
-    private $request;
-    public $helper;
     /**
-     * @var \AmazonPayCheckout\Helpers\ApiHelper
+     * @var Response
+     */
+    private $response;
+    /**
+     * @var Request
+     */
+    private $request;
+    /**
+     * @var ApiHelper
      */
     private $apiHelper;
     /**
-     * @var \AmazonPayCheckout\Helpers\TransactionHelper
+     * @var TransactionHelper
      */
     private $transactionHelper;
 
@@ -44,7 +49,7 @@ class IpnController extends Controller
 
         $this->log(__CLASS__, __METHOD__, 'request_data', '', [$requestData, $message]);
 
-        if(!$this->isIpnValid($requestBody)){
+        if (!$this->isIpnValid($requestBody)) {
             $this->log(__CLASS__, __METHOD__, 'invalid_ipn', '', [$requestBody], true);
             return $twig->render('AmazonPayCheckout::content.output', ['output' => 'invalid ipn']);
         }
@@ -80,7 +85,7 @@ class IpnController extends Controller
                 'messageBody' => $messageBody,
             ]
         );
-        $this->log(__CLASS__, __METHOD__, 'ipn_validator_result', '', ['message' => $messageBody, 'result'=>$result]);
+        $this->log(__CLASS__, __METHOD__, 'ipn_validator_result', '', ['message' => $messageBody, 'result' => $result]);
 
         return (bool)$result['isValid'];
     }

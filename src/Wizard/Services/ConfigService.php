@@ -14,12 +14,6 @@ class ConfigService
      */
     private $pluginSetList;
 
-    public function __construct()
-    {
-
-    }
-
-
     /**
      * @return array
      */

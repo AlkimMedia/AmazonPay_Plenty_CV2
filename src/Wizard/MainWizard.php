@@ -2,6 +2,7 @@
 
 namespace AmazonPayCheckout\Wizard;
 
+use AmazonPayCheckout\Helpers\ConfigHelper;
 use AmazonPayCheckout\Wizard\Services\ConfigService;
 use Plenty\Modules\Wizard\Services\WizardProvider;
 
@@ -25,6 +26,8 @@ class MainWizard extends WizardProvider
      */
     protected function structure(): array
     {
+        /** @var ConfigHelper $configHelper */
+        $configHelper = pluginApp(ConfigHelper::class);
         $return = [
             'title' => 'Amazon Pay',
             'shortDescription' => 'Einfache Einrichtung von Amazon Pay für deinen plentyShop',
@@ -63,8 +66,7 @@ class MainWizard extends WizardProvider
                     //'validationClass' => 'AmazonPayCheckout\Wizard\Validators\CredentialsValidator',
                     'sections' => [
                         [
-                            'title' => 'Wizard.credentialsStoreIdSectionTitle',
-                            'description' => 'Wizard.credentialsStoreIdSectionDescription',
+                            'title' => 'Wizard.credentialsSectionTitle',
                             'condition' => true,
                             'form' => [
                                 'storeId' => [
@@ -74,28 +76,13 @@ class MainWizard extends WizardProvider
                                         'required' => true,
                                     ],
                                 ],
-                            ],
-                        ],
-                        [
-                            'title' => 'Wizard.credentialsMerchantIdSectionTitle',
-                            'description' => 'Wizard.credentialsMerchantIdSectionDescription',
-                            'condition' => true,
-                            'form' => [
-                                'storeId' => [
+                                'merchantId' => [
                                     'type' => 'text',
                                     'options' => [
                                         'name' => 'Config.merchantIdLabel',
                                         'required' => true,
                                     ],
                                 ],
-                            ],
-                        ],
-
-                        [
-                            'title' => 'Wizard.credentialsKeySectionTitle',
-                            'description' => 'Wizard.credentialsKeySectionDescription',
-                            'condition' => true,
-                            'form' => [
                                 'privateKey' => [
                                     'type' => 'textarea',
                                     'options' => [
@@ -146,7 +133,14 @@ class MainWizard extends WizardProvider
                         [
                             'form' =>
                                 [
-
+                                    'ipnUrl' => [
+                                        'type' => 'text',
+                                        'defaultValue'=>$configHelper->getIpnUrl(),
+                                        'options' => [
+                                            'isReadonly'=> true,
+                                            'name' => 'Wizard.ipnLabel'
+                                        ],
+                                    ],
                                 ],
                         ],
                     ],

@@ -2,20 +2,12 @@
 
 namespace AmazonPayCheckout\Helpers;
 
-use AmazonPayApiSdkExtension\Struct\MerchantMetadata;
-use AmazonPayApiSdkExtension\Struct\PaymentDetails;
-use AmazonPayApiSdkExtension\Struct\Price;
-use AmazonPayApiSdkExtension\Struct\WebCheckoutDetails;
-use AmazonPayCheckout\Models\Transaction;
 use AmazonPayCheckout\Struct\Charge;
 use AmazonPayCheckout\Struct\ChargePermission;
 use AmazonPayCheckout\Struct\CheckoutSession;
 use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
 use Exception;
-use OncoAmazonPay\Structs\Configuration;
-use Plenty\Modules\Account\Address\Contracts\AddressRepositoryContract;
-use Plenty\Modules\Frontend\Contracts\Checkout;
 use Plenty\Modules\Payment\Models\Payment;
 use Plenty\Modules\Plugin\Libs\Contracts\LibraryCallContract;
 
@@ -24,7 +16,7 @@ class ApiHelper
     use LoggingTrait;
 
     /**
-     * @var \AmazonPayCheckout\Helpers\ConfigHelper
+     * @var ConfigHelper
      */
     private $configHelper;
 
@@ -276,8 +268,6 @@ class ApiHelper
         ]);
         return $response->response->checkoutSessionId;
     }
-
-
 
 
 }

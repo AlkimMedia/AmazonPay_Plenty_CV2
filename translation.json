@@ -1,0 +1,9 @@
+{
+  "sections": [],
+  "ignoredTranslationFiles":  [
+    "Config.properties",
+    "Logger.properties",
+    "Widget.properties",
+    "Wizard.properties"
+  ]
+}

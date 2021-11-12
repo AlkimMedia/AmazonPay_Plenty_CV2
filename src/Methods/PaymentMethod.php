@@ -5,13 +5,14 @@ namespace AmazonPayCheckout\Methods;
 use AmazonPayCheckout\Helpers\ConfigHelper;
 use Plenty\Modules\Payment\Method\Services\PaymentMethodBaseService;
 use Plenty\Plugin\Application;
+use Plenty\Plugin\Translation\Translator;
 
 class PaymentMethod extends PaymentMethodBaseService
 {
     const ICON = '/images/amazon_pay_logo.png';
     const PAYMENT_KEY = 'AMAZON_PAY_CHECKOUT';
     const PLUGIN_KEY = 'alkim_amazonpay_checkout';
-    const PAYMENT_NAME = 'Amazon Pay Checkout';
+    const PAYMENT_NAME = 'Amazon Pay';
 
     public function isExpressCheckout()
     {
@@ -30,7 +31,7 @@ class PaymentMethod extends PaymentMethodBaseService
 
     public function getBackendName(string $lang = ''): string
     {
-        return $this->getName();
+        return 'Amazon Pay v2';
     }
 
     public function getName(string $lang = ""): string
@@ -65,7 +66,9 @@ class PaymentMethod extends PaymentMethodBaseService
 
     public function getBackendIcon(): string
     {
-        return $this->getIcon();
+        /** @var Application $application */
+        $application = pluginApp(Application::class);
+        return $application->getUrlPath('AmazonPayCheckout') . '/images/backend_logo.svg';
     }
 
     public function isActive(): bool
@@ -84,6 +87,8 @@ class PaymentMethod extends PaymentMethodBaseService
 
     public function getDescription(string $lang = ""): string
     {
-        return '';
+        /** @var Translator $translator */
+        $translator = pluginApp(Translator::class);
+        return $translator->trans('AmazonPayCheckout::AmazonPay.checkoutPaymentMethodDescription', [], $lang);
     }
 }

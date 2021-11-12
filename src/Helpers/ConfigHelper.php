@@ -9,8 +9,9 @@ use Plenty\Plugin\ConfigRepository;
 
 class ConfigHelper
 {
+
     /**
-     * @var \Plenty\Plugin\ConfigRepository
+     * @var ConfigRepository
      */
     private $configRepository;
     private $platformId = 'A1SGXK19QKIYNB';
@@ -18,7 +19,6 @@ class ConfigHelper
     public function __construct(ConfigRepository $configRepository)
     {
         $this->configRepository = $configRepository;
-
     }
 
     /**
@@ -29,7 +29,7 @@ class ConfigHelper
         return $this->platformId;
     }
 
-    public function getClientConfiguration()
+    public function getClientConfiguration(): array
     {
         return [
             'public_key_id' => $this->getConfigurationValue('publicKeyId'),
@@ -37,10 +37,9 @@ class ConfigHelper
             'region' => $this->getConfigurationValue('accountCountry'),
             'sandbox' => (bool)$this->getConfigurationValue('sandbox'),
         ];
-
     }
 
-    public function isConfigComplete()
+    public function isConfigComplete(): bool
     {
         return
             !empty($this->getConfigurationValue('publicKeyId'))
@@ -57,12 +56,12 @@ class ConfigHelper
         return $this->configRepository->get('AmazonPayCheckout.' . $key);
     }
 
-    public function getUrl($path)
+    public function getUrl($path): string
     {
         return $this->getAbsoluteUrl($path);
     }
 
-    public function getAbsoluteUrl($path)
+    public function getAbsoluteUrl($path): string
     {
         /** @var WebstoreConfigurationService $webstoreConfigurationService */
         $webstoreConfigurationService = pluginApp(WebstoreConfigurationService::class);
@@ -78,53 +77,53 @@ class ConfigHelper
         return $urlQuery->toAbsoluteUrl($includeLanguage);
     }
 
-    public function getCheckoutReviewReturnUrl()
+    public function getCheckoutReviewReturnUrl(): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-return');
     }
 
-    public function getCreateCheckoutSessionUrl()
+    public function getCreateCheckoutSessionUrl(): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-get-session');
     }
 
-    public function getSignInReturnUrl()
+    public function getSignInReturnUrl(): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-sign-in');
     }
 
-    public function getIpnUrl()
+    public function getIpnUrl(): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-ipn');
     }
 
-    public function getCheckoutStartUrl()
+    public function getCheckoutStartUrl(): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-checkout-start');
     }
 
-    public function getCurrency()
+    public function getCurrency(): string
     {
         return 'EUR';//TODO
     }
 
-    public function getLanguage()
+    public function getLanguage(): string //TODO
     {
         return 'de_DE';
     }
 
-    public function getCheckoutResultReturnUrl()
+    public function getCheckoutResultReturnUrl(): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-place-order');
     }
 
-    public function getPayExistingOrderCheckoutResultReturnUrl($orderId)
+    public function getPayExistingOrderCheckoutResultReturnUrl($orderId): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-existing-order-process') . '?order_id=' . $orderId;
     }
 
 
-    public function getCustomInformationString()
+    public function getCustomInformationString(): string
     {
         return 'Created by Alkim Media, plentymarkets, V*'; //TODO
     }
