@@ -5,6 +5,7 @@ namespace AmazonPayCheckout\Helpers;
 use AmazonPayCheckout\Contracts\TransactionRepositoryContract;
 use AmazonPayCheckout\Models\Transaction;
 use AmazonPayCheckout\Struct\Charge;
+use AmazonPayCheckout\Struct\ChargePermission;
 use AmazonPayCheckout\Struct\Refund;
 use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
@@ -31,7 +32,7 @@ class TransactionHelper
      *
      * @throws Exception
      */
-    public function updateCharge(Charge $charge, $orderId = null)
+    public function updateCharge($charge, $orderId = null)
     {
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
@@ -118,7 +119,7 @@ class TransactionHelper
     }
 
     /**
-     * @param \AmazonPayCheckout\Struct\ChargePermission $chargePermission
+     * @param ChargePermission $chargePermission
      *
      * @return Transaction
      */
@@ -185,7 +186,7 @@ class TransactionHelper
      * @param Refund $refund
      * @return Transaction
      */
-    protected function getRefundTransaction(Refund $refund): Transaction
+    protected function getRefundTransaction($refund): Transaction
     {
             $transaction = $this->getTransaction($refund->refundId, Transaction::TRANSACTION_TYPE_REFUND);
             $transaction->amount = (float)$refund->refundAmount->amount;

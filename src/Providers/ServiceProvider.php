@@ -129,8 +129,6 @@ class ServiceProvider extends ServiceProviderParent
             });
 
 
-
-
         $eventDispatcher->listen('Ceres.LayoutContainer.Checkout.BeforeShippingAddress',
             function (LayoutContainer $container, $arguments) {
                 /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */

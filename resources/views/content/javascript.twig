@@ -40,7 +40,7 @@
 
 <script src="https://static-eu.payments-amazon.com/checkout.js"></script>
 <script type="text/javascript" charset="utf-8">
-    var AmazonPayConfiguration = {
+    const AmazonPayConfiguration = {
         merchantId: '{{ config('AmazonPayCheckout.merchantId') }}',
         checkoutSessionId: '{{ checkoutSessionId }}',
         paymentMethodId: '{{ paymentMethodId }}',
@@ -49,7 +49,7 @@
         loginPayload: '{{ loginPayload|raw }}',
         loginSignature: '{{ loginSignature }}',
         publicKeyId: '{{ config('AmazonPayCheckout.publicKeyId') }}',
-        isSandbox:{{ config('AmazonPayCheckout.sandbox') }},
+        isSandbox:{% if  config('AmazonPayCheckout.sandbox') %}true{% else %}false{% endif %},
         language: 'de_DE',
         buttonColor: '{{ config('AmazonPayCheckout.payButtonColor') }}'
     };
