@@ -35,7 +35,7 @@ class ConfigHelper
             'public_key_id' => $this->getConfigurationValue('publicKeyId'),
             'private_key' => $this->getConfigurationValue('privateKey'),
             'region' => $this->getConfigurationValue('accountCountry'),
-            'sandbox' => (bool)$this->getConfigurationValue('sandbox'),
+            'sandbox' => $this->getConfigurationValue('sandbox') === 'true',
         ];
     }
 

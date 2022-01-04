@@ -65,7 +65,7 @@
           "required": false,
           "label": "Config.sandboxLabel",
           "options": {
-            "defaultValue": "0"
+            "defaultValue": "false"
           }
         },
         "hideButtons": {
@@ -73,7 +73,7 @@
           "required": false,
           "label": "Config.hideButtonsLabel",
           "options": {
-            "defaultValue": "0"
+            "defaultValue": "false"
           }
         },
         "authorizationMode": {

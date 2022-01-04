@@ -57,7 +57,7 @@ class AccountHelper
         $shippingAddressObject    = null;
         try {
             $email = null;
-            if ($configHelper->getConfigurationValue('useEmailInShippingAddress') == 'true') {
+            if ($configHelper->getConfigurationValue('useEmailInShippingAddress') === 'true') {
                 $email = $checkoutSession->buyer->email;
             }
             $formattedShippingAddress = $this->reformatAmazonAddress($checkoutSession->shippingAddress, $email);

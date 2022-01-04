@@ -10,7 +10,7 @@
         createCheckoutSessionUrl: '{{ urls.createCheckoutSession }}',
         ledgerCurrency: {% if  config('AmazonPayCheckout.accountCountry') == 'DE' %}'EUR'{% else %}'GBP'{% endif %},
         publicKeyId: '{{ config('AmazonPayCheckout.publicKeyId') }}',
-        isSandbox:{% if config('AmazonPayCheckout.sandbox') %}true{% else %}false{% endif %},
+        isSandbox:{% if config('AmazonPayCheckout.sandbox') == 'true' %}true{% else %}false{% endif %},
         language: 'de_DE',
         buttonColor: '{{ config('AmazonPayCheckout.payButtonColor') }}'
     };

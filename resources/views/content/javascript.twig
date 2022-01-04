@@ -49,7 +49,7 @@
         loginPayload: '{{ loginPayload|raw }}',
         loginSignature: '{{ loginSignature }}',
         publicKeyId: '{{ config('AmazonPayCheckout.publicKeyId') }}',
-        isSandbox:{% if  config('AmazonPayCheckout.sandbox') %}true{% else %}false{% endif %},
+        isSandbox:{% if  config('AmazonPayCheckout.sandbox') == 'true' %}true{% else %}false{% endif %},
         language: 'de_DE',
         buttonColor: '{{ config('AmazonPayCheckout.payButtonColor') }}'
     };
