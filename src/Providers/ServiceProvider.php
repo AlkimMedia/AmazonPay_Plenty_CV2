@@ -156,7 +156,7 @@ class ServiceProvider extends ServiceProviderParent
             PaymentMethod::PLUGIN_KEY,
             ProcedureEntry::PROCEDURE_GROUP_ORDER,
             [
-                'de' => 'Amazon Pay Vorgang schließen',
+                'de' => 'Amazon Pay v2: Vorgang schließen',
                 'en' => 'Close order with Amazon Pay',
             ],
             '\AmazonPayCheckout\Procedures\CloseChargePermissionProcedure@run'
@@ -166,7 +166,7 @@ class ServiceProvider extends ServiceProviderParent
             PaymentMethod::PLUGIN_KEY,
             ProcedureEntry::PROCEDURE_GROUP_ORDER,
             [
-                'de' => 'Vollständiger Einzug der Amazon Pay Zahlung',
+                'de' => 'Amazon Pay v2: Vollständiger Zahlungseinzug',
                 'en' => 'Complete capture with Amazon Pay',
             ],
             '\AmazonPayCheckout\Procedures\CaptureProcedure@run'
@@ -176,7 +176,7 @@ class ServiceProvider extends ServiceProviderParent
             PaymentMethod::PLUGIN_KEY,
             ProcedureEntry::PROCEDURE_GROUP_ORDER,
             [
-                'de' => 'Erstattung der Amazon Pay Zahlung',
+                'de' => 'Amazon Pay v2: Erstattung Zahlung',
                 'en' => 'Refund with Amazon Pay',
             ],
             '\AmazonPayCheckout\Procedures\RefundProcedure@run'
