@@ -9,7 +9,6 @@ use Plenty\Plugin\Translation\Translator;
 
 class PaymentMethod extends PaymentMethodBaseService
 {
-    const ICON = '/images/amazon_pay_logo.png';
     const PAYMENT_KEY = 'AMAZON_PAY_CHECKOUT';
     const PLUGIN_KEY = 'alkim_amazonpay_checkout';
     const PAYMENT_NAME = 'Amazon Pay';
@@ -66,9 +65,7 @@ class PaymentMethod extends PaymentMethodBaseService
 
     public function getBackendIcon(): string
     {
-        /** @var Application $application */
-        $application = pluginApp(Application::class);
-        return $application->getUrlPath('AmazonPayCheckout') . '/images/backend_logo.svg';
+        return 'https://amazon-pay-assets.s3.eu-central-1.amazonaws.com/logos/logo_square.svg';
     }
 
     public function isActive(): bool
@@ -80,9 +77,7 @@ class PaymentMethod extends PaymentMethodBaseService
 
     public function getIcon(string $lang = ""): string
     {
-        /** @var Application $application */
-        $application = pluginApp(Application::class);
-        return $application->getUrlPath('AmazonPayCheckout') . static::ICON;
+        return 'https://amazon-pay-assets.s3.eu-central-1.amazonaws.com/logos/logo_square.svg';
     }
 
     public function getDescription(string $lang = ""): string

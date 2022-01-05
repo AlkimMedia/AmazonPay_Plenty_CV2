@@ -10,6 +10,7 @@ use AmazonPayCheckout\Traits\LoggingTrait;
 use Exception;
 use Plenty\Modules\Payment\Models\Payment;
 use Plenty\Modules\Plugin\Libs\Contracts\LibraryCallContract;
+use Plenty\Modules\Webshop\Contracts\SessionStorageRepositoryContract;
 
 class ApiHelper
 {
@@ -122,11 +123,17 @@ class ApiHelper
 
     public function generateButtonSignature($payload)
     {
-        //TODO cache
-        $response = $this->call('generateButtonSignature', [
-            'payload' => $payload,
-        ]);
-        return $response->response->signature;
+        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
+        $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
+        $storageKey = 'amazonPayButtonSignature'.md5($payload);
+        if(!($signature = $sessionStorageRepository->getSessionValue($storageKey))){
+            $response = $this->call('generateButtonSignature', [
+                'payload' => $payload,
+            ]);
+            $signature = $response->response->signature;
+            $sessionStorageRepository->setSessionValue($storageKey, $signature);
+        }
+        return $signature;
     }
 
     public function getChargePermission(string $chargePermissionId)

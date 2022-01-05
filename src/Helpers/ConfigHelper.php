@@ -56,6 +56,10 @@ class ConfigHelper
         return $this->configRepository->get('AmazonPayCheckout.' . $key);
     }
 
+    public function getAuthorizedStatus(){
+        return $this->getConfigurationValue('authorizedStatus');
+    }
+
     public function getUrl($path): string
     {
         return $this->getAbsoluteUrl($path);

@@ -42,7 +42,7 @@ class CheckoutHelper
         $result = [];
         /** @var Country $country */
         foreach ($countryList as $country) {
-            if(in_array($country->isoCode2, ['EA'])){
+            if (in_array($country->isoCode2, ['EA'])) {
                 continue;
             }
             $result[] = $country->isoCode2;
@@ -85,6 +85,8 @@ class CheckoutHelper
                 $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $order->amounts[0]->invoiceTotal, $order->amounts[0]->currency);
 
                 if ($checkoutSession->statusDetails->state === StatusDetails::COMPLETED) {
+                    $this->updateChargePermissionWithPlentyOrderId($checkoutSession->chargePermissionId, (int)$order->id);
+
                     /** @var \AmazonPayCheckout\Helpers\OrderHelper $orderHelper */
                     $orderHelper = pluginApp(OrderHelper::class);
 
@@ -108,9 +110,7 @@ class CheckoutHelper
                         $transactionHelper->updateCharge($charge, $order->id);
                     }
                     $chargePermission = $apiHelper->getChargePermission($checkoutSession->chargePermissionId);
-                    //$chargePermission = $apiHelper->updateChargePermission($checkoutSession->chargePermissionId, $order->id);
-
-                    $chargePermissionTransaction = $transactionHelper->persistTransaction($chargePermission, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION, $order->id, $payment->id);
+                    $transactionHelper->persistTransaction($chargePermission, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION, $order->id, $payment->id);
 
                     if ($checkoutSession->chargeId) {
                         $charge = $apiHelper->getCharge($checkoutSession->chargeId);
@@ -126,6 +126,19 @@ class CheckoutHelper
         }
 
     }
+
+    public function updateChargePermissionWithPlentyOrderId(string $chargePermissionId, int $orderId)
+    {
+        try {
+            /** @var ApiHelper $apiHelper */
+            $apiHelper = pluginApp(ApiHelper::class);
+            $response = $apiHelper->updateChargePermission($chargePermissionId, $orderId);
+            $this->log(__CLASS__, __METHOD__, 'result', '', [$response]);
+        } catch (Exception $e) {
+            $this->log(__CLASS__, __METHOD__, 'error', '', [$e->getMessage(), $chargePermissionId, $orderId], true);
+        }
+    }
+
 
     public function setCurrentPaymentMethodId()
     {
@@ -246,16 +259,16 @@ class CheckoutHelper
             $shippingAddressId = null;
             $billingAddressId = null;
 
-            foreach($existingOrder->addressRelations as $addressRelation){
+            foreach ($existingOrder->addressRelations as $addressRelation) {
                 $this->log(__CLASS__, __METHOD__, 'addressRelation ', '', [$addressRelation, AddressRelationType::BILLING_ADDRESS, AddressRelationType::DELIVERY_ADDRESS]);
-                if($addressRelation->typeId == AddressRelationType::BILLING_ADDRESS){
+                if ($addressRelation->typeId == AddressRelationType::BILLING_ADDRESS) {
                     $billingAddressId = $addressRelation->addressId;
-                }elseif($addressRelation->typeId == AddressRelationType::DELIVERY_ADDRESS){
+                } elseif ($addressRelation->typeId == AddressRelationType::DELIVERY_ADDRESS) {
                     $shippingAddressId = $addressRelation->addressId;
                 }
             }
             $this->log(__CLASS__, __METHOD__, 'addressRelationResult ', '', [$shippingAddressId, $billingAddressId]);
-            $addressId = $shippingAddressId?:$billingAddressId;
+            $addressId = $shippingAddressId ?: $billingAddressId;
 
         } else {
             $addressId = $checkout->getCustomerShippingAddressId() ?? $checkout->getCustomerInvoiceAddressId();

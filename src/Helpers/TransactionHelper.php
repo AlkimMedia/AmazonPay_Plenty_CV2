@@ -36,25 +36,31 @@ class TransactionHelper
     {
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
+        /** @var OrderHelper $orderHelper */
+        $orderHelper = pluginApp(OrderHelper::class);
         $chargeTransaction = $this->persistTransaction($charge, Transaction::TRANSACTION_TYPE_CHARGE, $orderId);
         $orderId = $chargeTransaction->order;
 
         if ($chargeTransaction->status === StatusDetails::CAPTURED && !empty($orderId)) {
             if (!$chargeTransaction->adminInformed) {
-                /** @var OrderHelper $orderHelper */
-                $orderHelper = pluginApp(OrderHelper::class);
+
                 $payment = $orderHelper->createPaymentObject($charge->captureAmount->amount, Payment::STATUS_CAPTURED, $charge->chargeId, '', null, Payment::PAYMENT_TYPE_CREDIT, Payment::TRANSACTION_TYPE_BOOKED_POSTING, $charge->captureAmount->currencyCode);
                 $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $orderHelper->getOrder($orderId));
                 $chargeTransaction->adminInformed = 1;
                 $chargeTransaction->paymentId = $payment->id;
                 $this->transactionRepository->saveTransaction($chargeTransaction);
             }
-        }elseif ($chargeTransaction->status === StatusDetails::AUTHORIZED && $configHelper->getConfigurationValue('captureMode') === 'after_auth') {
-            $this->log(__CLASS__, __METHOD__, 'autoCapture', '', ['charge'=>$chargeTransaction]);
-            /** @var ApiHelper $apiHelper */
-            $apiHelper = pluginApp(ApiHelper::class);
-            $capturedCharge = $apiHelper->capture($charge->chargeId);
-            $this->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);
+        }elseif ($chargeTransaction->status === StatusDetails::AUTHORIZED){
+            if($orderId){
+                $orderHelper->setOrderStatusAuthorized($orderId);
+            }
+            if($configHelper->getConfigurationValue('captureMode') === 'after_auth') {
+                $this->log(__CLASS__, __METHOD__, 'autoCapture', '', ['charge' => $chargeTransaction]);
+                /** @var ApiHelper $apiHelper */
+                $apiHelper = pluginApp(ApiHelper::class);
+                $capturedCharge = $apiHelper->capture($charge->chargeId);
+                $this->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);
+            }
         }
 
         //TODO Get and update charge permission

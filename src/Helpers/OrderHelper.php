@@ -35,27 +35,27 @@ class OrderHelper
         /** @var Payment $payment */
         $payment = pluginApp(Payment::class);
 
-        $payment->mopId            = (int)$paymentMethodHelper->createMopIfNotExistsAndReturnId();
-        $payment->transactionType  = $transactionType;
-        $payment->type             = $type;
-        $payment->status           = $status;
-        $payment->currency         = $currency;
+        $payment->mopId = (int)$paymentMethodHelper->createMopIfNotExistsAndReturnId();
+        $payment->transactionType = $transactionType;
+        $payment->type = $type;
+        $payment->status = $status;
+        $payment->currency = $currency;
         $payment->isSystemCurrency = ($currency === 'EUR');
-        $payment->amount           = $amount;
-        $payment->receivedAt       = $dateTime;
+        $payment->amount = $amount;
+        $payment->receivedAt = $dateTime;
         if ($status != Payment::STATUS_CAPTURED && $status != Payment::STATUS_REFUNDED) {
             $payment->unaccountable = 1;
         } else {
             $payment->unaccountable = 0;
         }
 
-        $paymentProperties   = [];
-        $paymentProperties[] = $this->createPaymentProperty(PaymentProperty::TYPE_BOOKING_TEXT, $transactionId.' '.$comment);
+        $paymentProperties = [];
+        $paymentProperties[] = $this->createPaymentProperty(PaymentProperty::TYPE_BOOKING_TEXT, $transactionId . ' ' . $comment);
         $paymentProperties[] = $this->createPaymentProperty(PaymentProperty::TYPE_TRANSACTION_ID, $transactionId);
 
 
         $payment->properties = $paymentProperties;
-        $payment             = $paymentRepository->createPayment($payment);
+        $payment = $paymentRepository->createPayment($payment);
         $this->log(__CLASS__, __METHOD__, 'result', '', [$payment]);
 
         return $payment;
@@ -69,19 +69,19 @@ class OrderHelper
     public function createPayButtonForExistingOrder(Order $order, PaymentMethodHelper $paymentMethodHelper): string
     {
         $paymentMethodId = $paymentMethodHelper->createMopIfNotExistsAndReturnId();
-        $this->log(__CLASS__, __METHOD__, 'start', '', ['order'=>$order, 'paymentMethod'=>$paymentMethodId]);
+        $this->log(__CLASS__, __METHOD__, 'start', '', ['order' => $order, 'paymentMethod' => $paymentMethodId]);
         /** @var OrderProperty $property */
-        foreach($order->properties as $property){
+        foreach ($order->properties as $property) {
             $this->log(__CLASS__, __METHOD__, 'property', '', [$property, $property->typeId, $property->value]);
-            if((int)$property->typeId === 3){
-                if((int)$property->value === (int)$paymentMethodId){
+            if ((int)$property->typeId === 3) {
+                if ((int)$property->value === (int)$paymentMethodId) {
                     /** @var TransactionHelper $transactionHelper */
                     $transactionHelper = pluginApp(TransactionHelper::class);
-                    if(count($transactionHelper->getOrderTransactions($order->id))){
+                    if (count($transactionHelper->getOrderTransactions($order->id))) {
                         return '';
                     }
-                    return  pluginApp(Twig::class)->render('AmazonPayCheckout::content.payment_method_reinitialize',[
-                        'order'=>$order
+                    return pluginApp(Twig::class)->render('AmazonPayCheckout::content.payment_method_reinitialize', [
+                        'order' => $order,
                     ]);
                 }
             }
@@ -98,9 +98,9 @@ class OrderHelper
     private function createPaymentProperty(int $typeId, string $value): PaymentProperty
     {
         /** @var PaymentProperty $paymentProperty */
-        $paymentProperty         = pluginApp(PaymentProperty::class);
+        $paymentProperty = pluginApp(PaymentProperty::class);
         $paymentProperty->typeId = $typeId;
-        $paymentProperty->value  = $value;
+        $paymentProperty->value = $value;
 
         return $paymentProperty;
     }
@@ -143,7 +143,7 @@ class OrderHelper
 
         /** @var OrderPropertyRepositoryContract $orderPropertyRepository */
         $orderPropertyRepository = pluginApp(OrderPropertyRepositoryContract::class);
-        $loggable                  = $this;
+        $loggable = $this;
         $authHelper->processUnguarded(
             function () use ($orderPropertyRepository, $orderId, $externalId, $loggable) {
                 try {
@@ -156,10 +156,10 @@ class OrderHelper
                     }
                     $orderProperty = $orderPropertyRepository->create([
                         'orderId' => $orderId,
-                        'typeId'  => OrderPropertyType::EXTERNAL_ORDER_ID,
-                        'value'   => $externalId
+                        'typeId' => OrderPropertyType::EXTERNAL_ORDER_ID,
+                        'value' => $externalId,
                     ]);
-                    $loggable->log(__CLASS__, __METHOD__, 'success','', [$orderProperty]);
+                    $loggable->log(__CLASS__, __METHOD__, 'success', '', [$orderProperty]);
                 } catch (\Exception $e) {
                     $loggable->log(__CLASS__, __METHOD__, 'error', '', [$e->getCode(), $e->getMessage(), $e->getLine()], true);
                 }
@@ -184,6 +184,65 @@ class OrderHelper
                 return $orderRepository->findOrderById($orderId);
             }
         );
+    }
+
+    public function setOrderStatusAuthorized($orderId)
+    {
+        /** @var OrderRepositoryContract $orderRepository */
+        $orderRepository = pluginApp(OrderRepositoryContract::class);
+
+        if($order = $orderRepository->findOrderById($orderId)){
+            if((float)$order->statusId > 3.001){
+                return;
+            }
+        }
+
+        /** @var ConfigHelper $configHelper */
+        $configHelper = pluginApp(ConfigHelper::class);
+        $newOrderStatus = $configHelper->getAuthorizedStatus();
+        if ($newOrderStatus === '4/5') {
+            try {
+                $this->log(__CLASS__, __METHOD__, 'auth_status_45', 'start intelligent stock', ['order' => $orderId]);
+
+                /** @var AuthHelper $authHelper */
+                $authHelper = pluginApp(AuthHelper::class);
+                $authHelper->processUnguarded(
+                    function () use ($orderRepository, $orderId) {
+                        return $orderRepository->setOrderStatus45((int)$orderId);
+                    }
+                );
+            } catch (\Exception $e) {
+                $this->log(__CLASS__, __METHOD__, 'auth_status_45_failed', 'set intelligent stock order status failed', [$e, $e->getMessage()], true);
+            }
+        } else {
+            $this->setOrderStatus($orderId, $newOrderStatus);
+        }
+    }
+
+    public function setOrderStatus($orderId, $status)
+    {
+        $this->log(__CLASS__, __METHOD__, 'start', 'try to set order status', ['order' => $orderId, 'status' => $status]);
+        if (!empty($status)) {
+            $order = ['statusId' => (float)$status];
+            $response = '';
+            try {
+                /** @var OrderRepositoryContract $orderRepository */
+                $orderRepository = pluginApp(OrderRepositoryContract::class);
+                /** @var AuthHelper $authHelper */
+                $authHelper = pluginApp(AuthHelper::class);
+                $response = $authHelper->processUnguarded(
+                    function () use ($orderRepository, $order, $orderId) {
+                        return $orderRepository->updateOrder($order, (int)$orderId);
+                    }
+                );
+            } catch (\Exception $e) {
+                $this->log(__CLASS__, __METHOD__, 'failed', 'set order status failed', [$e, $e->getMessage()], true);
+            }
+            $this->log(__CLASS__, __METHOD__, 'done', 'finished set order status', ['order' => $response, 'status' => $status]);
+        } else {
+            $this->log(__CLASS__, __METHOD__, 'empty_status', 'set order status cancelled because of empty status', null);
+        }
+
     }
 
 }
