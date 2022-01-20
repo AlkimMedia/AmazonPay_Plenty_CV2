@@ -2,8 +2,8 @@
   "name": "AmazonPayCheckout",
   "namespace": "AmazonPayCheckout",
   "marketplaceName": {
-    "de": "Amazon Pay Checkout ",
-    "en": "Amazon Pay Checkout"
+    "de": "Amazon Pay v2",
+    "en": "Amazon Pay v2"
   },
   "description": "The official Amazon Pay plugin for plentymarkets",
   "shortDescription": {
