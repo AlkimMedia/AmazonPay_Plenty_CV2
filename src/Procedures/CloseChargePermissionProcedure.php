@@ -29,7 +29,7 @@ class CloseChargePermissionProcedure
         }
 
         $chargePermissionTransaction = $transactionRepository->getTransactions([
-            ['orderId', '=', $orderId],
+            ['order', '=', $orderId],
             ['type', '=', Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION]
         ])[0];
 

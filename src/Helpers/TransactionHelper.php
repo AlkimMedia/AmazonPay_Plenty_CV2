@@ -43,7 +43,6 @@ class TransactionHelper
 
         if ($chargeTransaction->status === StatusDetails::CAPTURED && !empty($orderId)) {
             if (!$chargeTransaction->adminInformed) {
-
                 $payment = $orderHelper->createPaymentObject($charge->captureAmount->amount, Payment::STATUS_CAPTURED, $charge->chargeId, '', null, Payment::PAYMENT_TYPE_CREDIT, Payment::TRANSACTION_TYPE_BOOKED_POSTING, $charge->captureAmount->currencyCode);
                 $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $orderHelper->getOrder($orderId));
                 $chargeTransaction->adminInformed = 1;
