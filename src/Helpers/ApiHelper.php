@@ -167,7 +167,17 @@ class ApiHelper
         );
         $endTime = microtime(true);
         $duration = $endTime - $startTime;
-        $this->log(__CLASS__, __METHOD__, 'result', '', ['startTime' => $startTime, 'endTime' => $endTime, 'duration' => $duration, 'action' => $action, 'parameters' => $parameters, 'result' => $result]);
+
+        if ($action !== 'generateButtonSignature') {
+            $this->log(__CLASS__, __METHOD__, 'result', '', [
+                'startTime' => $startTime,
+                'endTime' => $endTime,
+                'duration' => $duration,
+                'action' => $action,
+                'parameters' => $parameters,
+                'result' => $result,
+            ]);
+        }
 
         return json_decode(json_encode($result));
     }
