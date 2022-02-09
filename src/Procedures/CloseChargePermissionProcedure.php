@@ -33,7 +33,7 @@ class CloseChargePermissionProcedure
             ['type', '=', Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION]
         ])[0];
 
-        $chargePermission = $apiHelper->closeChargePermission($chargePermissionTransaction->orderReference);
+        $chargePermission = $apiHelper->closeChargePermission($chargePermissionTransaction->reference);
         $transactionHelper->persistTransaction($chargePermission, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION);
     }
 }

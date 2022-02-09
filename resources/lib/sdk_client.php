@@ -204,7 +204,7 @@ try {
             $return['response']['chargePermission'] = $apiHelper->updateChargePermission(SdkRestApi::getParam('charge_permission_id'), SdkRestApi::getParam('order_id'))->toArray();
             break;
         case 'closeChargePermission':
-            $return['response']['chargePermission'] = $apiHelper->closeChargePermission(SdkRestApi::getParam('charge_permission_id'))->toArray();
+            $return['response']['chargePermission'] = $apiHelper->closeChargePermission(SdkRestApi::getParam('charge_permission_id'));
             break;
         case 'generateButtonSignature':
             $return['response']['signature'] = $apiHelper->getClient()->generateButtonSignature(SdkRestApi::getParam('payload'));
