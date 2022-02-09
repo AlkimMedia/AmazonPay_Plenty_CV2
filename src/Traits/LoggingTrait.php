@@ -10,7 +10,7 @@ trait LoggingTrait
 
     public function log(string $class, string $method, string $shortId, string $msg = '', $arg = [], bool $error = false): void
     {
-        $error  = true;
+        //$error  = true; //massive debugging only
         $logger = $this->getLogger($class . '_' . $method . '_' . $shortId);
         if ($error) {
             $logger->error($msg, $arg);

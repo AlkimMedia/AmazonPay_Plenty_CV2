@@ -72,7 +72,6 @@ class OrderHelper
         $this->log(__CLASS__, __METHOD__, 'start', '', ['order' => $order, 'paymentMethod' => $paymentMethodId]);
         /** @var OrderProperty $property */
         foreach ($order->properties as $property) {
-            $this->log(__CLASS__, __METHOD__, 'property', '', [$property, $property->typeId, $property->value]);
             if ((int)$property->typeId === 3) {
                 if ((int)$property->value === (int)$paymentMethodId) {
                     /** @var TransactionHelper $transactionHelper */
@@ -80,6 +79,7 @@ class OrderHelper
                     if (count($transactionHelper->getOrderTransactions($order->id))) {
                         return '';
                     }
+                    $this->log(__CLASS__, __METHOD__, 'order', '', [$property, $property->typeId, $property->value]);
                     return pluginApp(Twig::class)->render('AmazonPayCheckout::content.payment_method_reinitialize', [
                         'order' => $order,
                     ]);

@@ -251,14 +251,11 @@ class ApiHelper
                 'charge_id' => $chargeId,
                 'amount' => $amount,
             ]);
+            $this->log(__CLASS__, __METHOD__, 'response', '', [$response]);
             if (!empty($response) && !empty($response->response->refund)) {
                 /** @var TransactionHelper $transactionHelper */
                 $transactionHelper = pluginApp(TransactionHelper::class);
                 $transactionHelper->updateRefund($response->response->refund, $orderId);
-                /** @var OrderHelper $orderHelper */
-                $orderHelper = pluginApp(OrderHelper::class);
-                $payment = $orderHelper->createPaymentObject($response->refund->refundAmount->amount, Payment::STATUS_REFUNDED, $response->refund->refundId, '', null, Payment::PAYMENT_TYPE_DEBIT, Payment::TRANSACTION_TYPE_PROVISIONAL_POSTING, $response->refund->refundAmount->currencyCode);
-                $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $orderHelper->getOrder($orderId));
                 return $response->response->refund;
             }
 

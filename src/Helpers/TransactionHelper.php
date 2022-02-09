@@ -73,9 +73,10 @@ class TransactionHelper
      */
     public function updateRefund($refund, $orderId = null)
     {
+        $this->log(__CLASS__, __METHOD__, 'start', '', ['refund' => $refund, 'order'=>$orderId]);
         $refundTransaction = $this->persistTransaction($refund, Transaction::TRANSACTION_TYPE_REFUND, $orderId);
         $orderId             = $refundTransaction->order;
-
+        $this->log(__CLASS__, __METHOD__, 'after_persist', '', ['transaction' => $refundTransaction]);
         if ($refundTransaction->status === StatusDetails::REFUNDED && !empty($orderId)) {
             if (!$refundTransaction->adminInformed) {
                 /** @var OrderHelper $orderHelper */

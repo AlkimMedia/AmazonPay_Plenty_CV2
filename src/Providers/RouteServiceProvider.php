@@ -20,9 +20,6 @@ class RouteServiceProvider extends RouteServiceProviderBase
         $router->get('payment/amazon-pay-unset-payment-method', 'AmazonPayCheckout\Controllers\FrontendController@unsetPaymentMethod');
         $router->post('payment/amazon-pay-ipn', 'AmazonPayCheckout\Controllers\IpnController@index');
 
-        //$router->match(['post', 'get'], 'amazon-connect-accounts', 'AmazonLoginAndPay\Controllers\AmzContentController@amazonConnectAccountsAction');
-
-
         //This is for debugging only:
         $router->get('payment/amazon-pay-get-table', 'AmazonPayCheckout\Controllers\AjaxController@getTable'); //TODO
     }

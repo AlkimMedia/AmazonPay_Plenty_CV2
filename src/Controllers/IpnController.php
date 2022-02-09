@@ -80,7 +80,7 @@ class IpnController extends Controller
         $libCaller = pluginApp(LibraryCallContract::class);
 
         $result = $libCaller->call(
-            'AmazonLoginAndPay::ipn_validator',
+            'AmazonPayCheckout::ipn_validator',
             [
                 'messageBody' => $messageBody,
             ]
