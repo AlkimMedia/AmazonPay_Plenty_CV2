@@ -10,17 +10,17 @@ use Plenty\Modules\Account\Address\Contracts\AddressRepositoryContract;
 use Plenty\Modules\Account\Address\Models\AddressRelationType;
 use Plenty\Modules\Account\Contact\Contracts\ContactAddressRepositoryContract;
 use Plenty\Modules\Account\Contact\Contracts\ContactRepositoryContract;
-use Plenty\Modules\Webshop\Contracts\ContactRepositoryContract as WebshopContactRepositoryContract;
 use Plenty\Modules\Frontend\Contracts\Checkout;
 use Plenty\Modules\Frontend\Services\AccountService;
 use Plenty\Modules\Order\Shipping\Countries\Contracts\CountryRepositoryContract;
+use Plenty\Modules\Webshop\Contracts\ContactRepositoryContract as WebshopContactRepositoryContract;
 use Plenty\Modules\Webshop\Contracts\SessionStorageRepositoryContract;
 use Plenty\Plugin\ExternalAuth\Contracts\ExternalAccessRepositoryContract;
 use Plenty\Plugin\ExternalAuth\Services\ExternalAuthService;
 
 class AccountHelper
 {
-    const EXTERNAL_AUTH_SLUG = 'AmazonCV2';
+    const EXTERNAL_AUTH_SLUG = 'AmazonCV2Login';
 
     use LoggingTrait;
 
@@ -54,14 +54,14 @@ class AccountHelper
         $configHelper = pluginApp(ConfigHelper::class);
         $this->log(__CLASS__, __METHOD__, 'start');
         $formattedShippingAddress = null;
-        $shippingAddressObject    = null;
+        $shippingAddressObject = null;
         try {
             $email = null;
             if ($configHelper->getConfigurationValue('useEmailInShippingAddress') === 'true') {
                 $email = $checkoutSession->buyer->email;
             }
             $formattedShippingAddress = $this->reformatAmazonAddress($checkoutSession->shippingAddress, $email);
-            $shippingAddressObject    = $this->createAddress($formattedShippingAddress, 'delivery');
+            $shippingAddressObject = $this->createAddress($formattedShippingAddress, 'delivery');
             /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
             $checkout = pluginApp(Checkout::class);
             $checkout->setCustomerShippingAddressId($shippingAddressObject->id);
@@ -71,7 +71,7 @@ class AccountHelper
 
         $this->log(__CLASS__, __METHOD__, 'completed', '', [
             'shippingAddressArray' => $formattedShippingAddress,
-            'shippingAddress'      => $shippingAddressObject
+            'shippingAddress' => $shippingAddressObject,
         ]);
     }
 
@@ -84,24 +84,24 @@ class AccountHelper
     public function reformatAmazonAddress($address, $email = null)
     {
         $finalAddress = [
-            'options' => []
+            'options' => [],
         ];
-        $name         = $address->name;
-        $t            = explode(' ', $name);
-        $lastName     = array_pop($t);
-        $firstName    = implode(' ', $t);
+        $name = $address->name;
+        $t = explode(' ', $name);
+        $lastName = array_pop($t);
+        $firstName = implode(' ', $t);
 
         if ($address->addressLine3) {
-            $street  = trim($address->addressLine3);
+            $street = trim($address->addressLine3);
             $company = trim($address->addressLine1 . ' ' . $address->addressLine2);
         } elseif ($address->addressLine2) {
-            $street  = trim($address->addressLine2);
+            $street = trim($address->addressLine2);
             $company = trim($address->addressLine1);
         } else {
             $company = '';
-            $street  = trim($address->addressLine1);
+            $street = trim($address->addressLine1);
         }
-        $houseNo     = '';
+        $houseNo = '';
         $streetParts = explode(' ', $street); //TODO: replace with preg_split('/[\s]+/', $street);
         if (count($streetParts) > 1) {
             $houseNoKey = max(array_keys($streetParts));
@@ -111,14 +111,14 @@ class AccountHelper
                 $street = implode(' ', $streetParts);
             }
         }
-        $city        = $address->city;
-        $postcode    = $address->postalCode;
+        $city = $address->city;
+        $postcode = $address->postalCode;
         $countryCode = $address->countryCode;
-        $phone       = $address->phoneNumber;
+        $phone = $address->phoneNumber;
 
-        $finalAddress["name1"]    = $company;
-        $finalAddress["name2"]    = $firstName;
-        $finalAddress["name3"]    = $lastName;
+        $finalAddress["name1"] = $company;
+        $finalAddress["name2"] = $firstName;
+        $finalAddress["name3"] = $lastName;
         $finalAddress["address1"] = $street;
 
         if (!empty($houseNo)) {
@@ -126,21 +126,21 @@ class AccountHelper
         }
 
         $finalAddress["postalCode"] = $postcode;
-        $finalAddress["town"]       = $city;
-        $finalAddress["countryId"]  = $this->getCountryId($countryCode);
+        $finalAddress["town"] = $city;
+        $finalAddress["countryId"] = $this->getCountryId($countryCode);
         if (!empty($phone)) {
-            $finalAddress["phone"]     = $phone;
+            $finalAddress["phone"] = $phone;
             $finalAddress["options"][] = [
                 'typeId' => 4,
-                'value'  => $phone
+                'value' => $phone,
             ];
 
         }
         if (!empty($email)) {
-            $finalAddress["email"]     = $email;
+            $finalAddress["email"] = $email;
             $finalAddress["options"][] = [
                 'typeId' => 5,
-                'value'  => $email
+                'value' => $email,
             ];
         }
         $this->log(__CLASS__, __METHOD__, 'completed', '', [$finalAddress]);
@@ -152,7 +152,7 @@ class AccountHelper
     {
         /** @var CountryRepositoryContract $countryContract */
         $countryContract = pluginApp(CountryRepositoryContract::class);
-        $country         = $countryContract->getCountryByIso($countryIso2, 'isoCode2');
+        $country = $countryContract->getCountryByIso($countryIso2, 'isoCode2');
         $this->log(__CLASS__, __METHOD__, 'result', '', [$countryIso2, $country]);
 
         return (!empty($country) ? $country->id : 1);
@@ -161,7 +161,7 @@ class AccountHelper
     protected function createAddress($data, $type)
     {
         $addressObject = null;
-        $contactId     = $this->getContactId();
+        $contactId = $this->getContactId();
         if ($contactId) {
             /** @var ContactAddressRepositoryContract $contactAddressRepo */
             $contactAddressRepository = pluginApp(ContactAddressRepositoryContract::class);
@@ -196,11 +196,11 @@ class AccountHelper
     {
         $this->log(__CLASS__, __METHOD__, 'start');
         $formattedBillingAddress = null;
-        $billingAddressObject    = null;
+        $billingAddressObject = null;
         try {
-            $email                   = $checkoutSession->buyer->email;
+            $email = $checkoutSession->buyer->email;
             $formattedBillingAddress = $this->reformatAmazonAddress($checkoutSession->billingAddress, $email);
-            $billingAddressObject    = $this->createAddress($formattedBillingAddress, 'billing');
+            $billingAddressObject = $this->createAddress($formattedBillingAddress, 'billing');
             /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
             $checkout = pluginApp(Checkout::class);
             $checkout->setCustomerInvoiceAddressId($billingAddressObject->id);
@@ -210,7 +210,7 @@ class AccountHelper
 
         $this->log(__CLASS__, __METHOD__, 'completed', '', [
             'shippingAddressArray' => $formattedBillingAddress,
-            'shippingAddress'      => $billingAddressObject
+            'shippingAddress' => $billingAddressObject,
         ]);
     }
 
@@ -220,7 +220,7 @@ class AccountHelper
     public function createGuestSession($checkoutSession)
     {
         $loginResult = $this->createAccountSession($checkoutSession->buyer, false);
-        if(!$loginResult['success']) {
+        if (!$loginResult['success']) {
             /** @var SessionStorageRepositoryContract $sessionStorageRepository */
             $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
             $sessionStorageRepository->setSessionValue(SessionStorageRepositoryContract::GUEST_EMAIL, $checkoutSession->buyer->email);
@@ -247,76 +247,97 @@ class AccountHelper
         $this->log(__CLASS__, __METHOD__, 'start_login', '', [$buyer]);
 
         $return = [
-            'success' => false
+            'success' => false,
         ];
 
-        $email        = $buyer->email;
-        $name         = $buyer->name;
+        $email = $buyer->email;
+        $name = $buyer->name;
         $amazonUserId = $buyer->buyerId;
         if (!empty($buyer->buyerId) && !empty($buyer->email)) {
-            $doLogin            = false;
+            $doLogin = false;
             $externalAccessInfo = null;
+            $contactIdByEmail = $this->getContactIdByEmail($email);
             try {
                 $externalAccessInfo = $externalAccessRepository->findForTypeAndExternalId(self::EXTERNAL_AUTH_SLUG, $amazonUserId);
             } catch (Exception $e) {
-                $this->log(__CLASS__, __METHOD__, 'login_error', 'no external access info received', [$e, $e->getMessage(), self::EXTERNAL_AUTH_SLUG, $amazonUserId]);
+                $this->log(__CLASS__, __METHOD__, 'login_error_by_external_id', 'no external access info received', [$e, $e->getMessage(), self::EXTERNAL_AUTH_SLUG, $amazonUserId]);
             }
             $this->log(__CLASS__, __METHOD__, 'external_access_info', '', [$externalAccessInfo, self::EXTERNAL_AUTH_SLUG, $amazonUserId]);
+
             if (!is_object($externalAccessInfo) || empty($externalAccessInfo->contactId)) {
-                $contactIdByEmail = $this->getContactIdByEmail($email);
                 if (empty($contactIdByEmail)) {
                     if ($createAccount) {
                         /** @var ContactRepositoryContract $contactRepository */
                         $contactRepository = pluginApp(ContactRepositoryContract::class);
 
                         $contactData = [
-                            'typeId'     => 1,
-                            'fullName'   => $name,
-                            'email'      => $email,
+                            'typeId' => 1,
+                            'fullName' => $name,
+                            'email' => $email,
                             'referrerId' => 1,
-                            'options'    => [
+                            'options' => [
                                 [
-                                    'typeId'    => 2,
+                                    'typeId' => 2,
                                     'subTypeId' => 4,
-                                    'value'     => $email,
-                                    'priority'  => 0
+                                    'value' => $email,
+                                    'priority' => 0,
                                 ],
                                 [
-                                    'typeId'    => 8,
+                                    'typeId' => 8,
                                     'subTypeId' => 4,
-                                    'value'     => $name,
-                                    'priority'  => 0
-                                ]
-                            ]
+                                    'value' => $name,
+                                    'priority' => 0,
+                                ],
+                            ],
                         ];
 
                         $contact = $contactRepository->createContact($contactData);
                         $this->log(__CLASS__, __METHOD__, 'contact_created', '', [$contact, $contactData]);
-                        $contactId                 = $contact->id;
-                        /*$externalAccessCreatedInfo = $externalAccessRepository->create([
-                            'contactId'         => $contactId,
-                            'accessType'        => self::EXTERNAL_AUTH_SLUG,
+                        $contactId = $contact->id;
+                        $externalAccessCreatedInfo = $externalAccessRepository->create([
+                            'contactId' => $contactId,
+                            'accessType' => self::EXTERNAL_AUTH_SLUG,
                             'externalContactId' => $amazonUserId,
-                        ]);*/
-                        //$this->log(__CLASS__, __METHOD__, 'external_access_created', '', [$externalAccessCreatedInfo]);
-                        //$doLogin = true;
+                        ]);
+                        $this->log(__CLASS__, __METHOD__, 'external_access_created', '', [$externalAccessCreatedInfo]);
+                        $doLogin = true;
                     }
                 } else {
-                    /*$externalAccessCreatedInfo = $externalAccessRepository->create([
-                        'contactId'         => $contactIdByEmail,
-                        'accessType'        => self::EXTERNAL_AUTH_SLUG,
-                        'externalContactId' => $amazonUserId,
-                    ]);*/
-                    //$this->log(__CLASS__, __METHOD__, 'external_access_created', '', [$externalAccessCreatedInfo]);
-                    //$doLogin           = true;
+
+
+                    try {
+                        $externalAccessInfoByContact = $externalAccessRepository->findForTypeAndContactId(self::EXTERNAL_AUTH_SLUG, $contactIdByEmail);
+                    } catch (Exception $e) {
+                        $this->log(__CLASS__, __METHOD__, 'external_access_info_error', 'no external access info received', [$e, $e->getMessage(), self::EXTERNAL_AUTH_SLUG, $amazonUserId]);
+                    }
+
+                    if(empty($externalAccessInfoByContact)) {
+                        $externalAccessCreatedInfo = $externalAccessRepository->create([
+                            'contactId' => $contactIdByEmail,
+                            'accessType' => self::EXTERNAL_AUTH_SLUG,
+                            'externalContactId' => $amazonUserId,
+                        ]);
+                        $this->log(__CLASS__, __METHOD__, 'external_access_created', '', [$externalAccessCreatedInfo]);
+                    }else{
+                        $amazonUserId = $externalAccessInfoByContact->externalContactId;
+                        $this->log(__CLASS__, __METHOD__, 'login_hack', '', [$externalAccessInfoByContact]);
+                    }
+                    $doLogin = true;
                 }
 
             } else {
+                $this->log(__CLASS__, __METHOD__, 'do_login_1', '', []);
                 $doLogin = true;
             }
 
             if ($doLogin) {
-                $loginResult = $externalAuthService->logInWithExternalUserId($amazonUserId, self::EXTERNAL_AUTH_SLUG);
+                $this->log(__CLASS__, __METHOD__, 'do_login_2', '', [$amazonUserId, self::EXTERNAL_AUTH_SLUG]);
+                try {
+                    $loginResult = $externalAuthService->logInWithExternalUserId($amazonUserId, self::EXTERNAL_AUTH_SLUG);
+                } catch (Exception $e) {
+                    $this->log(__CLASS__, __METHOD__, 'do_login_error', '', [$e->getMessage()]);
+                }
+
                 $this->log(__CLASS__, __METHOD__, 'login_completed', '', [$loginResult]);
                 $return["success"] = true;
             }

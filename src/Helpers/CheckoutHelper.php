@@ -218,7 +218,28 @@ class CheckoutHelper
             return true;
         }
         return false;
+    }
 
+    /**
+     * @return \AmazonPayCheckout\Struct\CheckoutSession|null
+     */
+    public function getOpenSession()
+    {
+        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
+        $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
+        $checkoutSessionId = $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId');
+        if (empty($checkoutSessionId)) {
+            return null;
+        }
+
+        /** @var ApiHelper $apiHelper */
+        $apiHelper = pluginApp(ApiHelper::class);
+
+        $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
+        if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
+            return $checkoutSession;
+        }
+        return null;
     }
 
     public function scheduleNotification($message, $type = 'error')

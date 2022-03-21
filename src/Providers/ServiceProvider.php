@@ -82,20 +82,30 @@ class ServiceProvider extends ServiceProviderParent
                 $checkoutHelper = pluginApp(CheckoutHelper::class);
                 /** @var Translator $translator */
                 $translator = pluginApp(Translator::class);
-                if ($checkoutHelper->isCurrentPaymentMethodAmazonPay() && $checkoutHelper->hasOpenSession()) {
+                if ($checkoutHelper->isCurrentPaymentMethodAmazonPay() && ($checkoutSession = $checkoutHelper->getOpenSession())) {
+                    $paymentDescriptor = '';
+                    if (is_array($checkoutSession->paymentPreferences)) {
+                        foreach ($checkoutSession->paymentPreferences as $paymentPreference) {
+                            if (is_object($paymentPreference) && isset($paymentPreference->paymentDescriptor)) {
+                                $paymentDescriptor = $paymentPreference->paymentDescriptor;
+                                break;
+                            }
+                        }
+                    }
                     $container->addContent('
                         <div class="checkout-amazon-pay-logo-container mb-2 mt-2"><img src="https://amazon-pay-assets.s3.eu-central-1.amazonaws.com/logos/logo_default.svg" style="width: 180px; max-width:100%;"/></div>
-                        <div><a href="#" id="amazon-pay-change-payment">'.$translator->trans('AmazonPayCheckout::AmazonPay.changeAmazonPayPaymentMean').'</a></div>
-                        <div><a href="/payment/amazon-pay-unset-payment-method">'.$translator->trans('AmazonPayCheckout::AmazonPay.changePaymentMethod').'</a></div><br><br>'
+                        <div>'.$paymentDescriptor.'</div>
+                        <div><a href="#" id="amazon-pay-change-payment">' . $translator->trans('AmazonPayCheckout::AmazonPay.changeAmazonPayPaymentMean') . '</a></div>
+                        <div><a href="/payment/amazon-pay-unset-payment-method">' . $translator->trans('AmazonPayCheckout::AmazonPay.changePaymentMethod') . '</a></div><br><br>'
                     );
                 }
             });
 
         $eventDispatcher->listen('Ceres.LayoutContainer.MyAccount.OrderHistoryPaymentInformation',
-            function (LayoutContainer $container, $order) use ($paymentMethodHelper){
+            function (LayoutContainer $container, $order) use ($paymentMethodHelper) {
                 /** @var OrderHelper $orderHelper */
                 $orderHelper = pluginApp(OrderHelper::class);
-                if(!empty($order->id)) {
+                if (!empty($order->id)) {
                     $buttonHtml = $orderHelper->createPayButtonForExistingOrder($order, $paymentMethodHelper);
                     $container->addContent(
                         $buttonHtml
@@ -104,11 +114,11 @@ class ServiceProvider extends ServiceProviderParent
             });
 
         $eventDispatcher->listen('Ceres.LayoutContainer.OrderConfirmation.AdditionalPaymentInformation',
-            function (LayoutContainer $container, $order) use ($paymentMethodHelper){
+            function (LayoutContainer $container, $order) use ($paymentMethodHelper) {
                 /** @var OrderHelper $orderHelper */
                 $orderHelper = pluginApp(OrderHelper::class);
-                $orderHelper->log(__CLASS__, __METHOD__, 'ohContainer', 'test', [$order, is_object($order), is_array($order),  $order->id,  $order['id']]);
-                if(!empty($order['id'])) {
+                $orderHelper->log(__CLASS__, __METHOD__, 'ohContainer', 'test', [$order, is_object($order), is_array($order), $order->id, $order['id']]);
+                if (!empty($order['id'])) {
                     $buttonHtml = $orderHelper->createPayButtonForExistingOrder($orderHelper->getOrder($order['id']), $paymentMethodHelper);
                     $container->addContent(
                         $buttonHtml
@@ -117,10 +127,10 @@ class ServiceProvider extends ServiceProviderParent
             });
 
         $eventDispatcher->listen('Ceres.LayoutContainer.Script.AfterScriptsLoaded',
-            function (LayoutContainer $container){
+            function (LayoutContainer $container) {
                 /** @var ConfigHelper $configHelper */
                 $configHelper = pluginApp(ConfigHelper::class);
-                if(!$configHelper->isConfigComplete()){
+                if (!$configHelper->isConfigComplete()) {
                     return;
                 }
                 /** @var DataProviderJavascript $dataProvider */
@@ -145,7 +155,7 @@ class ServiceProvider extends ServiceProviderParent
                                 <div>' . $shippingAddress->street . ' ' . $shippingAddress->houseNumber . '</div>
                                 <div>' . $shippingAddress->postalCode . ' ' . $shippingAddress->town . '</div>
                                 <div>' . $shippingAddress->country->name . '</div>
-                                <div class="amazon-pay-change-address-container" style="text-align: right;"><a href="#" id="amazon-pay-change-address">'.$translator->trans('AmazonPayCheckout::AmazonPay.changeAddress').'</a></div>
+                                <div class="amazon-pay-change-address-container" style="text-align: right;"><a href="#" id="amazon-pay-change-address">' . $translator->trans('AmazonPayCheckout::AmazonPay.changeAddress') . '</a></div>
                             </div>
                        </div>
                        ');

@@ -5,6 +5,7 @@ namespace AmazonPayCheckout\Helpers;
 use IO\Services\SessionStorageService;
 use IO\Services\UrlBuilder\UrlQuery;
 use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Plugin\Contracts\PluginRepositoryContract;
 use Plenty\Plugin\ConfigRepository;
 
 class ConfigHelper
@@ -129,7 +130,15 @@ class ConfigHelper
 
     public function getCustomInformationString(): string
     {
-        return 'Created by Alkim Media, plentymarkets, V*'; //TODO
+        return 'Created by Alkim Media, plentymarkets, v'.$this->getPluginVersion();
+    }
+
+    public function getPluginVersion(){
+        /** @var PluginRepositoryContract $pluginRepo */
+        $pluginRepo = pluginApp(PluginRepositoryContract::class);
+        $plugin = $pluginRepo->getPluginByName("AmazonPayCheckout");
+        $plugin = $pluginRepo->decoratePlugin($plugin);
+        return $plugin->version;
     }
 
     public function getStoreName(): string

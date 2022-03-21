@@ -193,10 +193,6 @@ class MainWizard extends WizardProvider
                                                 'value' => 'fast_auth',
                                                 'caption' => 'Config.authorizationModePossibleValueFastAuth',
                                             ],
-                                            [
-                                                'value' => 'manually',
-                                                'caption' => 'Config.authorizationModePossibleValueManually',
-                                            ],
                                         ],
                                     ],
 

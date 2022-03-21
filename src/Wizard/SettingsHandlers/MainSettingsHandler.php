@@ -48,6 +48,11 @@ class MainSettingsHandler implements WizardSettingsHandler
         if (count($data)) {
             $configData = [];
             foreach ($data as $itemKey => $itemVal) {
+                if($itemVal === true){
+                    $itemVal = 'true';
+                }elseif ($itemVal === false){
+                    $itemVal = 'false';
+                }
                 $configData[] = [
                     'key'   => $itemKey,
                     'value' => $itemVal
