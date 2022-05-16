@@ -245,7 +245,7 @@ class ApiHelper
         try {
             $originalCharge = $this->getCharge($chargeId);
             if ($originalCharge->statusDetails->state !== StatusDetails::CAPTURED) {
-                throw new Exception('refund only allowed for captured charges');
+                throw new Exception('refund only allowed for captured charges - this charge has the status '.$originalCharge->statusDetails->state);
             }
             $response = $this->call('refund', [
                 'charge_id' => $chargeId,

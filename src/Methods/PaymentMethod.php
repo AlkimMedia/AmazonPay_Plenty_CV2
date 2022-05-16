@@ -72,7 +72,7 @@ class PaymentMethod extends PaymentMethodBaseService
     {
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
-        return $configHelper->isConfigComplete();
+        return $configHelper->isConfigComplete() && $configHelper->getConfigurationValue('hideButtons') !== 'true';
     }
 
     public function getIcon(string $lang = ""): string
