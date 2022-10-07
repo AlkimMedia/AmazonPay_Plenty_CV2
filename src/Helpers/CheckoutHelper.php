@@ -9,14 +9,18 @@ use Exception;
 use Plenty\Modules\Account\Address\Contracts\AddressRepositoryContract;
 use Plenty\Modules\Account\Address\Models\AddressRelationType;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
+use Plenty\Modules\Basket\Models\Basket;
 use Plenty\Modules\Frontend\Contracts\Checkout;
 use Plenty\Modules\Frontend\PaymentMethod\Contracts\FrontendPaymentMethodRepositoryContract;
+use Plenty\Modules\Frontend\Services\VatService;
 use Plenty\Modules\Frontend\Session\Storage\Contracts\FrontendSessionStorageFactoryContract;
 use Plenty\Modules\Order\Models\Order;
+use Plenty\Modules\Order\Shipping\Contracts\ParcelServicePresetRepositoryContract;
 use Plenty\Modules\Order\Shipping\Countries\Contracts\CountryRepositoryContract;
 use Plenty\Modules\Order\Shipping\Countries\Models\Country;
 use Plenty\Modules\Payment\Models\Payment;
 use Plenty\Modules\Webshop\Contracts\SessionStorageRepositoryContract;
+use Plenty\Plugin\Application;
 
 class CheckoutHelper
 {
@@ -24,17 +28,35 @@ class CheckoutHelper
 
     public static $sessionStatusCache = [];
 
-    public function getBasket()
+    public function getBasket(): Basket
     {
         /** @var BasketRepositoryContract $basketRepository */
         $basketRepository = pluginApp(BasketRepositoryContract::class);
         $basket = $basketRepository->load();
-        $this->log(__CLASS__, __METHOD__, 'basket', '', [$basket]);
 
+
+        /** @var VatService $vatService */
+        $vatService = pluginApp(VatService::class);
+        $vats = $vatService->getCurrentTotalVats();
+
+        $order = pluginApp(SessionStorageRepositoryContract::class)->getOrder();
+        $isNet = false;
+        if (!is_null($order)) {
+            $isNet = $order->isNet;
+        }
+
+        if (empty($vats) && $isNet) {
+            $basket->basketAmount = $basket->basketAmountNet;
+        }
+        $this->log(__CLASS__, __METHOD__, 'basket', '', [
+            'basket' => $basket,
+            'order' => $order,
+            'vats' => $vats,
+        ]);
         return $basket;
     }
 
-    public function getShippingCountries()
+    public function getShippingCountries(): array
     {
         /** @var CountryRepositoryContract $countryRepository */
         $countryRepository = pluginApp(CountryRepositoryContract::class);
@@ -161,9 +183,7 @@ class CheckoutHelper
         if ($shippingAddressId) {
             /** @var AddressRepositoryContract $addressRepository */
             $addressRepository = pluginApp(AddressRepositoryContract::class);
-            $address = $addressRepository->findAddressById($shippingAddressId);
-
-            return $address;
+            return $addressRepository->findAddressById($shippingAddressId);
         }
 
         return null;
@@ -333,5 +353,47 @@ class CheckoutHelper
 
         ];
     }
+
+    public function hasAvailableShippingMethod(): bool
+    {
+        $params = [
+            'countryId' => $this->getShippingCountryId(),
+            'webstoreId' => pluginApp(Application::class)->getWebstoreId(),
+        ];
+
+        $accountContactClassId = pluginApp(FrontendSessionStorageFactoryContract::class)->getCustomer()->accountContactClassId;
+        /** @var ParcelServicePresetRepositoryContract $repo */
+        $repo = pluginApp(ParcelServicePresetRepositoryContract::class);
+        $basket = $this->getBasket();
+
+        /** @var PaymentMethodHelper $paymentMethodHelper */
+        $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
+        $paymentMethodId = $paymentMethodHelper->createMopIfNotExistsAndReturnId();
+        $shippingMethods = $repo->getLastWeightedPresetCombinations($basket, $accountContactClassId, $params);
+        $this->log(__CLASS__, __METHOD__, 'result', '', ['basket' => $basket, 'result' => $shippingMethods]);
+        foreach ($shippingMethods as $shippingMethod) {
+            $excludedMethods = [];
+            if(!empty($shippingMethod->excludedPaymentMethodIds)){
+                $excludedMethods = $shippingMethod->excludedPaymentMethodIds;
+            }elseif(!empty($shippingMethod['excludedPaymentMethodIds'])){
+                $excludedMethods = $shippingMethod['excludedPaymentMethodIds'];
+            }
+
+            if (empty($excludedMethods) || !in_array($paymentMethodId, $excludedMethods)) {
+                $this->log(__CLASS__, __METHOD__, 'return_true', '', [$shippingMethod, $paymentMethodId, $excludedMethods]);
+                return true;
+            }
+        }
+        $this->log(__CLASS__, __METHOD__, 'return_false', '', [$shippingMethods]);
+        return false;
+    }
+
+    public function getShippingCountryId(): int
+    {
+        /** @var Checkout $checkout */
+        $checkout = pluginApp(Checkout::class);
+        return $checkout->getShippingCountryId();
+    }
+
 
 }

@@ -8,7 +8,6 @@ use AmazonPayCheckout\Struct\CheckoutSession;
 use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
 use Exception;
-use Plenty\Modules\Payment\Models\Payment;
 use Plenty\Modules\Plugin\Libs\Contracts\LibraryCallContract;
 use Plenty\Modules\Webshop\Contracts\SessionStorageRepositoryContract;
 
@@ -125,8 +124,8 @@ class ApiHelper
     {
         /** @var SessionStorageRepositoryContract $sessionStorageRepository */
         $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
-        $storageKey = 'amazonPayButtonSignature'.md5($payload);
-        if(!($signature = $sessionStorageRepository->getSessionValue($storageKey))){
+        $storageKey = 'amazonPayButtonSignature' . md5($payload);
+        if (!($signature = $sessionStorageRepository->getSessionValue($storageKey))) {
             $response = $this->call('generateButtonSignature', [
                 'payload' => $payload,
             ]);
@@ -268,7 +267,7 @@ class ApiHelper
     /**
      * @return string
      */
-    public function createCheckoutSession()
+    public function createCheckoutSession(): string
     {
         /** @var CheckoutHelper $checkoutHelper */
         $checkoutHelper = pluginApp(CheckoutHelper::class);
@@ -280,7 +279,7 @@ class ApiHelper
             'review_return_url' => $this->configHelper->getCheckoutReviewReturnUrl(),
             'allowed_countries' => $checkoutHelper->getShippingCountries(),
         ]);
-        return $response->response->checkoutSessionId;
+        return (string)$response->response->checkoutSessionId;
     }
 
 

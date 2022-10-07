@@ -11,12 +11,11 @@ class LoginButtonWidget extends BaseWidget
 
     protected function getTemplateData($widgetSettings, $isPreview)
     {
-        /** @var \AmazonPayCheckout\Helpers\ConfigHelper $helper */
+        /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
 
         return [
-            'color' => $configHelper->getConfigurationValue('loginButtonColor')
+            'color' => $configHelper->getConfigurationValue('loginButtonColor'),
         ];
     }
-
 }

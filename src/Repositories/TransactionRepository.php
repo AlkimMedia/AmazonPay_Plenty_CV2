@@ -18,6 +18,7 @@ use LoggingTrait;
      */
     public function createTransaction(array $data)
     {
+        /** @var Transaction $transaction */
         $transaction                   = pluginApp(Transaction::class);
         $transaction->orderReference   = (string)$data["orderReference"];
         $transaction->type             = (string)$data["type"];

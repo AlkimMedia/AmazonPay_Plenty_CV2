@@ -2,13 +2,14 @@
 
 namespace AmazonPayCheckout\Methods;
 
+use AmazonPayCheckout\Helpers\CheckoutHelper;
 use AmazonPayCheckout\Helpers\ConfigHelper;
 use Plenty\Modules\Payment\Method\Services\PaymentMethodBaseService;
-use Plenty\Plugin\Application;
 use Plenty\Plugin\Translation\Translator;
 
 class PaymentMethod extends PaymentMethodBaseService
 {
+    public static $shippingCheckStatus = null;
     const PAYMENT_KEY = 'AMAZON_PAY_CHECKOUT';
     const PLUGIN_KEY = 'alkim_amazonpay_checkout';
     const PAYMENT_NAME = 'Amazon Pay';
@@ -70,6 +71,17 @@ class PaymentMethod extends PaymentMethodBaseService
 
     public function isActive(): bool
     {
+        /** @var CheckoutHelper $checkoutHelper */
+        $checkoutHelper = pluginApp(CheckoutHelper::class);
+        $hasAvailableShippingMethod = true;
+        if(self::$shippingCheckStatus === null) {
+            self::$shippingCheckStatus = 'running';
+            $hasAvailableShippingMethod = $checkoutHelper->hasAvailableShippingMethod();
+            self::$shippingCheckStatus = null;
+        }
+        if(!$hasAvailableShippingMethod){
+            return false;
+        }
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
         return $configHelper->isConfigComplete() && $configHelper->getConfigurationValue('hideButtons') !== 'true';

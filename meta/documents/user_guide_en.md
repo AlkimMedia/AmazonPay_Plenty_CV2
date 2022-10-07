@@ -1,4 +1,5 @@
-# Amazon Pay and Login with Amazon
+# Amazon Pay Checkout v2
+The new conversion optimized checkout solution by Amazon Pay that allows a seamless integration in plentyShop LTS.
 With the Amazon Pay extension merchants enable over 300 million Amazon customers to login and pay on their website. Every Amazon customer can use this payment method immediately. 
 
 [Register now for Amazon Pay](https://sellercentral-europe.amazon.com/hz/me/sp/preregistration?solutionProviderId=A13SNST9X74Q8L&marketplaceId=A53RDEWN57UU5&ld=spexdeapa-promo-plenty-062018-ple&language=en_GB&source=SPMW)
@@ -23,6 +24,6 @@ With the Amazon Pay extension merchants enable over 300 million Amazon customers
 - Multi-language support
 
 ## Links
-[Information for installation and setup ](https://alkimmedia.github.io/AmazonPay_Plenty/)	   
+[Information for installation and setup](https://alkimmedia.github.io/AmazonPay_Plenty_CV2/)	   
 [Further information about Amazon Pay](https://pay.amazon.com/uk/merchant?ref=ml_de_ap_xx_sp_PAMP_xx_xx_xx_MPI)	 
 [Sign up for Amazon Pay](https://sellercentral-europe.amazon.com/hz/me/sp/preregistration?solutionProviderId=A13SNST9X74Q8L&marketplaceId=A53RDEWN57UU5&ld=spexdeapa-promo-plenty-062018-ple&language=en_GB&source=SPMW)

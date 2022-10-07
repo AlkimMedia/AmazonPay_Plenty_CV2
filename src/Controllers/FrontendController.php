@@ -5,6 +5,7 @@ namespace AmazonPayCheckout\Controllers;
 use AmazonPayCheckout\Helpers\AccountHelper;
 use AmazonPayCheckout\Helpers\ApiHelper;
 use AmazonPayCheckout\Helpers\CheckoutHelper;
+use AmazonPayCheckout\Helpers\ConfigHelper;
 use AmazonPayCheckout\Helpers\OrderHelper;
 use AmazonPayCheckout\Helpers\PaymentMethodHelper;
 use AmazonPayCheckout\Struct\StatusDetails;
@@ -170,7 +171,6 @@ class FrontendController extends Controller
     }
 
 
-
     public function placeOrder()
     {
         $this->log(__CLASS__, __METHOD__, 'start', '👩 place order', [$this->request->all()]);
@@ -254,6 +254,9 @@ class FrontendController extends Controller
 
     private function _continueWithAdditionalPaymentButton(ApiHelper $apiHelper, CheckoutHelper $checkoutHelper, $existingOrder = null)
     {
+        /** @var ConfigHelper $configHelper */
+        $configHelper = pluginApp(ConfigHelper::class);
+
         try {
             $createCheckoutSessionPayload = stripslashes(json_encode($checkoutHelper->getCheckoutSessionDataForDirectCheckout($existingOrder), JSON_UNESCAPED_UNICODE));
         } catch (Exception $e) {
@@ -263,6 +266,7 @@ class FrontendController extends Controller
         }
         return $this->twig->render('AmazonPayCheckout::content.additional_payment_button', [
             'createCheckoutSessionPayload' => $createCheckoutSessionPayload,
+            'language' => $configHelper->getLocale(),
             'createCheckoutSessionSignature' => $apiHelper->generateButtonSignature($createCheckoutSessionPayload),
         ]);
     }

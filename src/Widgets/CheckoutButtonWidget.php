@@ -11,12 +11,11 @@ class CheckoutButtonWidget extends BaseWidget
 
     protected function getTemplateData($widgetSettings, $isPreview)
     {
-        /** @var \AmazonPayCheckout\Helpers\ConfigHelper $helper */
+        /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
 
         return [
-            'color' => $configHelper->getConfigurationValue('payButtonColor')
+            'color' => $configHelper->getConfigurationValue('payButtonColor'),
         ];
     }
-
 }

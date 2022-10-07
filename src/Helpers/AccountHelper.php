@@ -21,13 +21,7 @@ use Plenty\Plugin\ExternalAuth\Services\ExternalAuthService;
 class AccountHelper
 {
     const EXTERNAL_AUTH_SLUG = 'AmazonCV2Login';
-
     use LoggingTrait;
-
-    public function __construct()
-    {
-
-    }
 
     public function isLoggedIn()
     {
@@ -91,39 +85,15 @@ class AccountHelper
         $lastName = array_pop($t);
         $firstName = implode(' ', $t);
 
-        if ($address->addressLine3) {
-            $street = trim($address->addressLine3);
-            $company = trim($address->addressLine1 . ' ' . $address->addressLine2);
-        } elseif ($address->addressLine2) {
-            $street = trim($address->addressLine2);
-            $company = trim($address->addressLine1);
-        } else {
-            $company = '';
-            $street = trim($address->addressLine1);
-        }
-        $houseNo = '';
-        $streetParts = explode(' ', $street); //TODO: replace with preg_split('/[\s]+/', $street);
-        if (count($streetParts) > 1) {
-            $houseNoKey = max(array_keys($streetParts));
-            if (strlen($streetParts[$houseNoKey]) <= 5) {
-                $houseNo = $streetParts[$houseNoKey];
-                unset($streetParts[$houseNoKey]);
-                $street = implode(' ', $streetParts);
-            }
-        }
+
         $city = $address->city;
         $postcode = $address->postalCode;
         $countryCode = $address->countryCode;
         $phone = $address->phoneNumber;
 
-        $finalAddress["name1"] = $company;
         $finalAddress["name2"] = $firstName;
         $finalAddress["name3"] = $lastName;
-        $finalAddress["address1"] = $street;
-
-        if (!empty($houseNo)) {
-            $finalAddress["address2"] = $houseNo;
-        }
+        $this->addStreetAndCompany($finalAddress, $address);
 
         $finalAddress["postalCode"] = $postcode;
         $finalAddress["town"] = $city;
@@ -146,6 +116,129 @@ class AccountHelper
         $this->log(__CLASS__, __METHOD__, 'completed', '', [$finalAddress]);
 
         return $finalAddress;
+    }
+
+    /**
+     * @param array $finalAddress
+     * @param Address $amazonAddress
+     * @return void
+     */
+    protected function addStreetAndCompany(&$finalAddress, $amazonAddress)
+    {
+        if (in_array($amazonAddress->countryCode, ['DE', 'AT'])) {
+            $this->_addStreetAndCompanyDA($finalAddress, $amazonAddress);
+
+        } else {
+            $this->_addStreetAndCompany($finalAddress, $amazonAddress);
+        }
+    }
+
+    /**
+     * @param array $finalAddress
+     * @param Address $amazonAddress
+     * @return void
+     */
+    protected function _addStreetAndCompanyDA(&$finalAddress, $amazonAddress)
+    {
+        $addressLine1 = trim($amazonAddress->addressLine1);
+        $addressLine2 = trim($amazonAddress->addressLine2);
+        $addressLine3 = trim($amazonAddress->addressLine3);
+        $company = '';
+        $street = '';
+        $houseNumber = '';
+        $additionalAddressPart = '';
+        if ($addressLine2 !== '') {
+            if (strlen($addressLine2) < 10 && preg_match('/^[0-9]+/', $addressLine2)) {
+                $houseNumber = $addressLine2;
+                $street = $addressLine1;
+            } else {
+                if (preg_match('/\d+/', substr($addressLine1, -2))) {
+                    $street = trim($amazonAddress->addressLine1);
+                    $company = trim($amazonAddress->addressLine2);
+                } else {
+                    $street = trim($amazonAddress->addressLine2);
+                    $company = trim($amazonAddress->addressLine1);
+                }
+            }
+        } elseif ($addressLine1 !== '') {
+            $street = $addressLine1;
+        }
+
+        if (empty($houseNumber)) {
+            $streetParts = explode(' ', $street);
+            if (count($streetParts) > 1) {
+                $_houseNumber = array_pop($streetParts);
+                if ($this->isHouseNumber($_houseNumber)) {
+                    $houseNumber = $_houseNumber;
+                    $street = implode(' ', $streetParts);
+                }
+            }
+        }
+
+        if ($addressLine3 !== '') {
+            $additionalAddressPart = $addressLine3;
+        }
+
+        $finalAddress['name1'] = trim($company);
+        $finalAddress['address1'] = trim($street);
+        $finalAddress['address2'] = trim($houseNumber);
+        $finalAddress['address3'] = trim($additionalAddressPart);
+    }
+
+    /**
+     * @param array $finalAddress
+     * @param Address $amazonAddress
+     * @return void
+     */
+    protected function _addStreetAndCompany(&$finalAddress, $amazonAddress)
+    {
+        //street might be in e.g. US format (123 Sth Street)
+        $addressLine1 = trim($amazonAddress->addressLine1);
+        $addressLine2 = trim($amazonAddress->addressLine2);
+        $addressLine3 = trim($amazonAddress->addressLine3);
+        $company = '';
+        $street = '';
+        $houseNumber = '';
+        $additionalAddressPart = '';
+
+        if ($addressLine1 !== '') {
+            $street = $addressLine1;
+            if ($addressLine2 !== '') {
+                if ($this->isHouseNumber($addressLine1) || $this->isHouseNumber($addressLine2)) {
+                    $street = $addressLine1 . ' ' . $addressLine2;
+                } else {
+                    $company = $addressLine2;
+                }
+            }
+            if ($addressLine3 !== '') {
+                $additionalAddressPart = $addressLine3;
+            }
+        } elseif ($addressLine2 !== '') {
+            $street = $addressLine2;
+            if ($addressLine3 !== '') {
+                $company = $addressLine3;
+            }
+        } elseif ($addressLine3 !== '') {
+            $street = $addressLine3;
+        }
+
+        $streetParts = explode(' ', $street);
+        if (count($streetParts) > 1) {
+            $_houseNumber = array_pop($streetParts);
+            if ($this->isHouseNumber($_houseNumber)) {
+                $houseNumber = $_houseNumber;
+                $street = implode(' ', $streetParts);
+            }
+        }
+        $finalAddress['name1'] = trim($company);
+        $finalAddress['address1'] = trim($street);
+        $finalAddress['address2'] = trim($houseNumber);
+        $finalAddress['address3'] = trim($additionalAddressPart);
+    }
+
+    protected function isHouseNumber($string)
+    {
+        return preg_match('/^\d+\s*[a-z-]{0,3}$/i', $string);
     }
 
     protected function getCountryId($countryIso2)
@@ -311,14 +404,14 @@ class AccountHelper
                         $this->log(__CLASS__, __METHOD__, 'external_access_info_error', 'no external access info received', [$e, $e->getMessage(), self::EXTERNAL_AUTH_SLUG, $amazonUserId]);
                     }
 
-                    if(empty($externalAccessInfoByContact)) {
+                    if (empty($externalAccessInfoByContact)) {
                         $externalAccessCreatedInfo = $externalAccessRepository->create([
                             'contactId' => $contactIdByEmail,
                             'accessType' => self::EXTERNAL_AUTH_SLUG,
                             'externalContactId' => $amazonUserId,
                         ]);
                         $this->log(__CLASS__, __METHOD__, 'external_access_created', '', [$externalAccessCreatedInfo]);
-                    }else{
+                    } else {
                         $amazonUserId = $externalAccessInfoByContact->externalContactId;
                         $this->log(__CLASS__, __METHOD__, 'login_hack', '', [$externalAccessInfoByContact]);
                     }

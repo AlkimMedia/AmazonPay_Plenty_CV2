@@ -5,11 +5,14 @@ namespace AmazonPayCheckout\Helpers;
 use IO\Services\SessionStorageService;
 use IO\Services\UrlBuilder\UrlQuery;
 use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Helper\Services\WebstoreHelper;
 use Plenty\Modules\Plugin\Contracts\PluginRepositoryContract;
+use Plenty\Modules\Webshop\Contracts\LocalizationRepositoryContract;
 use Plenty\Plugin\ConfigRepository;
 
 class ConfigHelper
 {
+    const AVAILABLE_LOCALES = ['en_GB', 'de_DE', 'fr_FR', 'it_IT', 'es_ES'];
 
     /**
      * @var ConfigRepository
@@ -107,14 +110,23 @@ class ConfigHelper
         return $this->getAbsoluteUrl('payment/amazon-pay-checkout-start');
     }
 
-    public function getCurrency(): string
+    public function getLocale(): string
     {
-        return 'EUR';//TODO
-    }
+        /** @var LocalizationRepositoryContract $localizationRepository */
+        $localizationRepository = pluginApp(LocalizationRepositoryContract::class);
+        $locale = $localizationRepository->getLocale();
+        if(in_array($locale, self::AVAILABLE_LOCALES)){
+            return $locale;
+        }
 
-    public function getLanguage(): string //TODO
-    {
-        return 'de_DE';
+        $language = strtolower(substr($locale, 2));
+        foreach(self::AVAILABLE_LOCALES as $availableLocale){
+            if(strpos($availableLocale, $language) === 0){
+                return $availableLocale;
+            }
+        }
+
+        return 'en_GB';
     }
 
     public function getCheckoutResultReturnUrl(): string
@@ -143,7 +155,11 @@ class ConfigHelper
 
     public function getStoreName(): string
     {
-        return ''; //TODO //(strlen($storeName) > 50 ? substr($storeName, 0, 46) . ' ...' : $storeName);
+        /** @var WebstoreHelper $storeHelper */
+        $storeHelper = pluginApp(WebstoreHelper::class);
+        $storeConfig = $storeHelper->getCurrentWebstoreConfiguration();
+        $storeName = $storeConfig->name;
+        return (strlen($storeName) > 50 ? substr($storeName, 0, 46) . ' ...' : $storeName);
     }
 
 }

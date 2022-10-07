@@ -100,6 +100,7 @@ class TransactionHelper
      */
     public function persistTransaction($transactionStruct, $type, $orderId = null, $paymentId = null): Transaction
     {
+        $this->log(__CLASS__, __METHOD__, 'start', '', ['struct'=>$transactionStruct, 'type'=>$type, 'orderId'=>$orderId, 'paymentId'=>$paymentId]);
         /** @var Transaction $transaction */
         if ($type === Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION) {
             $transaction = $this->getChargePermissionTransaction($transactionStruct);

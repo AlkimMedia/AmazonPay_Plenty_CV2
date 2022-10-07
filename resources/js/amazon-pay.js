@@ -110,7 +110,7 @@ var PlentyAmazonPay = {
             const buttons = document.querySelectorAll('.amazon-login-button');
             for (let i = 0; i < buttons.length; i++) {
                 let button = buttons[i];
-                if(isCheckoutProcess){
+                if (isCheckoutProcess) {
                     button.classList.add('amazon-pay-button');
                     continue;
                 }
@@ -178,7 +178,7 @@ var PlentyAmazonPay = {
                     });
 
                     _button.onClick(function () {
-                        PlentyAmazonPay.buyProduct(function(){
+                        PlentyAmazonPay.buyProduct(function () {
                             _button.initCheckout({
                                 createCheckoutSession: {
                                     url: AmazonPayConfiguration.createCheckoutSessionUrl
@@ -220,13 +220,14 @@ var PlentyAmazonPay = {
 }
 setInterval(PlentyAmazonPay.init, 1000);
 
-
-$(function () {
-    $("[id^='reinitPaymentMethod-']").click(function () {
-        const orderId = $(this).attr('id').split('-')[1];
-        window.location = '/payment/amazon-pay-existing-order?orderId=' + orderId;
+if (typeof jQuery !== 'undefined') {
+    jQuery(function () {
+        jQuery("[id^='reinitPaymentMethod-']").click(function () {
+            const orderId = $(this).attr('id').split('-')[1];
+            window.location = '/payment/amazon-pay-existing-order?orderId=' + orderId;
+        });
     });
-});
+}
 
 document.addEventListener('historyPaymentMethodChanged', e => {
     for (let property in e.detail.newOrder.order.properties) {

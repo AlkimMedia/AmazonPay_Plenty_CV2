@@ -93,10 +93,14 @@ class ServiceProvider extends ServiceProviderParent
                         }
                     }
                     $container->addContent('
-                        <div class="checkout-amazon-pay-logo-container mb-2 mt-2"><img src="https://amazon-pay-assets.s3.eu-central-1.amazonaws.com/logos/logo_default.svg" style="width: 180px; max-width:100%;"/></div>
-                        <div>'.$paymentDescriptor.'</div>
-                        <div><a href="#" id="amazon-pay-change-payment">' . $translator->trans('AmazonPayCheckout::AmazonPay.changeAmazonPayPaymentMean') . '</a></div>
-                        <div><a href="/payment/amazon-pay-unset-payment-method">' . $translator->trans('AmazonPayCheckout::AmazonPay.changePaymentMethod') . '</a></div><br><br>'
+                        <div class="amazon-pay-payment-info-container card mb-4">
+                            <div class="checkout-amazon-pay-logo-container">
+                                <img src="https://amazon-pay-assets.s3.eu-central-1.amazonaws.com/logos/logo_default.svg"/>
+                            </div>
+                            <div>'.$paymentDescriptor.'</div>
+                            <div><a href="#" id="amazon-pay-change-payment">' . $translator->trans('AmazonPayCheckout::AmazonPay.changeAmazonPayPaymentMean') . '</a></div>
+                            <div><a href="/payment/amazon-pay-unset-payment-method">' . $translator->trans('AmazonPayCheckout::AmazonPay.changePaymentMethod') . '</a></div>
+                        </div>'
                     );
                 }
             });
@@ -128,6 +132,7 @@ class ServiceProvider extends ServiceProviderParent
 
         $eventDispatcher->listen('Ceres.LayoutContainer.Script.AfterScriptsLoaded',
             function (LayoutContainer $container) {
+                $this->log(__CLASS__, __METHOD__, 'AfterScriptsLoaded');
                 /** @var ConfigHelper $configHelper */
                 $configHelper = pluginApp(ConfigHelper::class);
                 if (!$configHelper->isConfigComplete()) {
@@ -148,14 +153,14 @@ class ServiceProvider extends ServiceProviderParent
                 if ($checkoutHelper->isCurrentPaymentMethodAmazonPay() && $checkoutHelper->hasOpenSession()) {
                     if ($shippingAddress = $checkoutHelper->getShippingAddress()) {
                         $container->addContent('
-                        <div class="amazon-pay-shipping-address-container card mb-4" style="padding:1em;">
+                        <div class="amazon-pay-shipping-address-container card mb-4">
                             <div class="amazon-pay-shipping-address">
                                 <div>' . $shippingAddress->companyName . '</div>
                                 <div>' . $shippingAddress->firstName . ' ' . $shippingAddress->lastName . '</div>
                                 <div>' . $shippingAddress->street . ' ' . $shippingAddress->houseNumber . '</div>
                                 <div>' . $shippingAddress->postalCode . ' ' . $shippingAddress->town . '</div>
                                 <div>' . $shippingAddress->country->name . '</div>
-                                <div class="amazon-pay-change-address-container" style="text-align: right;"><a href="#" id="amazon-pay-change-address">' . $translator->trans('AmazonPayCheckout::AmazonPay.changeAddress') . '</a></div>
+                                <div class="amazon-pay-change-address-container"><a href="#" id="amazon-pay-change-address">' . $translator->trans('AmazonPayCheckout::AmazonPay.changeAddress') . '</a></div>
                             </div>
                        </div>
                        ');

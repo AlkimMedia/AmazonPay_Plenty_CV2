@@ -11,7 +11,7 @@
         ledgerCurrency: {% if  config('AmazonPayCheckout.accountCountry') == 'DE' %}'EUR'{% else %}'GBP'{% endif %},
         publicKeyId: '{{ config('AmazonPayCheckout.publicKeyId') }}',
         isSandbox:{% if config('AmazonPayCheckout.sandbox') == 'true' %}true{% else %}false{% endif %},
-        language: 'de_DE',
+        language: '{{ language }}',
         buttonColor: '{{ config('AmazonPayCheckout.payButtonColor') }}'
     };
 </script>

@@ -21,6 +21,6 @@ class RouteServiceProvider extends RouteServiceProviderBase
         $router->post('payment/amazon-pay-ipn', 'AmazonPayCheckout\Controllers\IpnController@index');
 
         //This is for debugging only:
-        $router->get('payment/amazon-pay-get-table', 'AmazonPayCheckout\Controllers\AjaxController@getTable'); //TODO
+        //$router->get('payment/amazon-pay-get-table', 'AmazonPayCheckout\Controllers\AjaxController@getTable');
     }
 }

@@ -7,14 +7,14 @@
   },
   "description": "The official Amazon Pay plugin for plentymarkets",
   "shortDescription": {
-    "de": "Das offizielle, von alkim media (Certified Developer Amazon Pay) entwickelte Amazon Pay Plugin für den Ceres Webshop (plentymarkets 7)",
-    "en": "The official Amazon Pay plugin developed by alkim media (Certified Developer Amazon Pay) for Ceres (plentmarkets 7)."
+    "de": "Das offizielle, von alkim media (Certified Developer Amazon Pay) entwickelte Amazon Pay v2 Plugin für den plentyShop LTS",
+    "en": "The official Amazon Pay v2 plugin developed by alkim media (Certified Developer Amazon Pay) for plentyShop LTS"
   },
   "type": "payment",
   "categories": [
     "3519"
   ],
-  "version": "0.0.2",
+  "version": "1.0.0",
   "license": "AGPL-3.0",
   "pluginIcon": "icon_plugin_xs.png",
   "price": 0.0,
@@ -55,6 +55,9 @@
   "require": {
     "IO": ">=4.0.0",
     "Ceres": ">=4.0.0"
+  },
+  "platform": {
+    "php": ">=7.3 <=8.1"
   },
   "dependencies": {
     "mkreusch/amazon-pay-api-sdk-php-extension": "0.1.0",

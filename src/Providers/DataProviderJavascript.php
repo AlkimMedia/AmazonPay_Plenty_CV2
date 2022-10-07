@@ -10,9 +10,14 @@ use Plenty\Plugin\Templates\Twig;
 
 class DataProviderJavascript
 {
+    protected static $isRendered = false;
 
-    public function call(Twig $twig)
+    public function call(Twig $twig): string
     {
+        if (self::$isRendered) {
+            return '';
+        }
+        self::$isRendered = true;
         /** @var \AmazonPayCheckout\Helpers\ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
 
@@ -24,26 +29,26 @@ class DataProviderJavascript
 
         /** @var SessionStorageRepositoryContract $sessionStorageRepository */
         $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
-        $checkoutSessionId        = $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId');
+        $checkoutSessionId = $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId');
 
         $urls = [
             'createCheckoutSession' => $configHelper->getCreateCheckoutSessionUrl(),
-            'test'                  => 'testurl'
         ];
-        
+
         $loginPayload = stripslashes(json_encode([
             'signInReturnUrl' => $configHelper->getSignInReturnUrl(),
-            'storeId'         => $configHelper->getConfigurationValue('storeId'),
-            'signInScopes'    => ["name", "email", "postalCode"]
+            'storeId' => $configHelper->getConfigurationValue('storeId'),
+            'signInScopes' => ["name", "email", "postalCode"],
         ]));
         $loginSignature = $apiHelper->generateButtonSignature($loginPayload);
 
         return $twig->render('AmazonPayCheckout::content.javascript', [
             'urls' => $urls,
             'checkoutSessionId' => $checkoutSessionId,
+            'language' => $configHelper->getLocale(),
             'paymentMethodId' => $paymentMethodHelper->createMopIfNotExistsAndReturnId(),
-            'loginPayload'=>$loginPayload,
-            'loginSignature'=>$loginSignature
+            'loginPayload' => $loginPayload,
+            'loginSignature' => $loginSignature,
         ]);
     }
 }

@@ -1,9 +1,11 @@
-[**Hier geht es zu den Informationen zur Integration und Konfiguration von "Amazon Pay and Login with Amazon"**](https://alkimmedia.github.io/AmazonPay_Plenty/)
+[**Hier geht es zu den Informationen zur Integration und Konfiguration von "Amazon Pay Checkout v2"**](https://alkimmedia.github.io/AmazonPay_Plenty_CV2/)
 
-# Amazon Pay and Login with Amazon
+# Amazon Pay Checkout v2
+Die neue Conversion optimierte Checkout-Lösung von Amazon Pay mit nahtloser Integration in den plentyShop LTS.
 Ermöglichen Sie es über 300 Millionen von Amazon-Kunden, sich auf Ihrer Website einzuloggen und zu bezahlen. Jeder Amazon Kunde kann diese Zahlungsart sofort in Ihrem Shop nutzen.
 
 [Zur Registrierung von Amazon Pay](https://sellercentral-europe.amazon.com/hz/me/sp/preregistration?solutionProviderId=A13SNST9X74Q8L&marketplaceId=A53RDEWN57UU5&ld=spexdeapa-promo-plenty-062018-ple&language=de_DE&source=SPMW)
+
 ## Ihre Vorteile
 - Umsatzsteigerung - Erhöhung der Kaufabschlussquote um bis zu 35%* durch hohes Kundenvertrauen in Amazon.
 - Verbessertes Kundenerlebnis - Kunden bestellen mit nur drei Klicks.
@@ -36,6 +38,6 @@ Laura Garrity | E-Commerce Manager | DOMU
 Andrew Kennedy | Commercial Manager | Flooring Superstore
 
 ## Hilfreiche Links
-[Hinweise zur Installation und Einrichtung ](https://alkimmedia.github.io/AmazonPay_Plenty/)	   
+[Hinweise zur Installation und Einrichtung](https://alkimmedia.github.io/AmazonPay_Plenty_CV2/)	   
 [Hilfeseite](https://pay.amazon.com/de/help)	 
 [Jetzt für Amazon Pay anmelden](https://sellercentral-europe.amazon.com/hz/me/sp/preregistration?solutionProviderId=A13SNST9X74Q8L&marketplaceId=A53RDEWN57UU5&ld=spexdeapa-promo-plenty-062018-ple&language=de_DE&source=SPMW)
