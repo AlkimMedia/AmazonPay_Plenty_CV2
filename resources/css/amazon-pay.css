@@ -42,3 +42,7 @@
 .amazon-pay-change-address-container{
     text-align: right;
 }
+
+.amazon-pay-payment-info-container{
+    padding:1em;
+}
