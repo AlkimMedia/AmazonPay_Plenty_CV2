@@ -34,25 +34,31 @@ class CheckoutHelper
         $basketRepository = pluginApp(BasketRepositoryContract::class);
         $basket = $basketRepository->load();
 
+        if(!empty($basket) && !empty($basket->itemSum)) {
+            /** @var VatService $vatService */
+            $vatService = pluginApp(VatService::class);
+            $vats = $vatService->getCurrentTotalVats();
 
-        /** @var VatService $vatService */
-        $vatService = pluginApp(VatService::class);
-        $vats = $vatService->getCurrentTotalVats();
+            $order = pluginApp(SessionStorageRepositoryContract::class)->getOrder();
+            $isNet = false;
+            if (!is_null($order)) {
+                $isNet = $order->isNet;
+            }
 
-        $order = pluginApp(SessionStorageRepositoryContract::class)->getOrder();
-        $isNet = false;
-        if (!is_null($order)) {
-            $isNet = $order->isNet;
+            if (empty($vats) && $isNet) {
+                $basket->basketAmount = $basket->basketAmountNet;
+            }
+            $this->log(__CLASS__, __METHOD__, 'basket', '', [
+                'basket' => $basket,
+                'order' => $order,
+                'vats' => $vats,
+            ]);
+        }else{
+            $this->log(__CLASS__, __METHOD__, 'basket', '', [
+                'basket' => $basket,
+            ]);
         }
 
-        if (empty($vats) && $isNet) {
-            $basket->basketAmount = $basket->basketAmountNet;
-        }
-        $this->log(__CLASS__, __METHOD__, 'basket', '', [
-            'basket' => $basket,
-            'order' => $order,
-            'vats' => $vats,
-        ]);
         return $basket;
     }
 

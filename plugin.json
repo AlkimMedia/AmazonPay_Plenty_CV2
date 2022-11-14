@@ -14,7 +14,7 @@
   "categories": [
     "3519"
   ],
-  "version": "1.0.0",
+  "version": "1.0.2",
   "license": "AGPL-3.0",
   "pluginIcon": "icon_plugin_xs.png",
   "price": 0.0,
@@ -57,7 +57,7 @@
     "Ceres": ">=4.0.0"
   },
   "platform": {
-    "php": ">=7.3 <=8.1"
+    "php": ">=7.3 <8.1"
   },
   "dependencies": {
     "mkreusch/amazon-pay-api-sdk-php-extension": "0.1.0",

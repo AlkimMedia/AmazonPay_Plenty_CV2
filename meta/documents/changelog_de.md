@@ -1,5 +1,5 @@
 # Release Notes für Amazon Pay Checkout
 
-## 1.0.0
+## 1.0.2
 Initial Release
 
