@@ -1,0 +1,8 @@
+<script>
+    const language = navigator.language || navigator.browserLanguage;
+    if(language.substr(0,2).toLocaleLowerCase === 'de'){
+        location.href = '/de/';
+    }else{
+        location.href = '/de/'; //TODO: change after translation
+    }
+</script>
