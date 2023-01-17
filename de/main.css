@@ -1,0 +1,21 @@
+:root {
+    --md-primary-fg-color:        #680f0e;
+    --md-primary-fg-color--light: #e3e3e3;
+    --md-primary-fg-color--dark:  #680f0e;
+}
+
+h2{
+    border-bottom: 2px solid #ccc;
+}
+
+.block{
+    display:block !important;
+}
+
+.center{
+    text-align: center;
+}
+
+.mt5{
+    margin-top:5px;
+}
