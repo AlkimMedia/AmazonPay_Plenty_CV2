@@ -1,9 +1,9 @@
-## Quickstart/Checkliste
+## Quickstart/Checklist
 
-Wenn ihr schon häufiger Amazon Pay eingerichtet habt, hier noch einmal die Zusammenfassung als Cheatsheet:
+If you set up Amazon Pay frequently, here is a summary to serve as a cheatsheet:
 
-* [x] Plugin installieren und bereitstellen(gerne in einem Test-Plugin-Set)
-* [x] Zugangsdaten aus Sellercentral übernehmen
-* [x] IPN einrichten (`https://www.domain.com/payment/amazon-pay-ipn/`, Sandbox und Live beachten)
-* [x] Container-Verknüpfungen anlegen (Achtung: Nicht nur StandardßVerknüpfungen)
-* [x] Ereignisaktionen einrichten
+* [x] Install and deploy plugin (preferably in a test plugin set).
+* [x] Transfer credentials from Sellercentral
+* [x] Set up IPN (`https://www.domain.com/payment/amazon-pay-ipn/`, sandbox and live)
+* [x] Create container links (Attention: Not only default links)
+* [x] Set up event procedures

@@ -47,7 +47,7 @@ Weitere Informationen finden Sie unter https://pay.amazon.de/help/202153180
 
 ### Plenty Marketplace
 
-Sie finden die aktuelle Version im [plentyMarketplace](https://marketplace.plentymarkets.com/) und können sie von dort
+Sie finden die aktuelle Version im [plentyMarketplace](https://marketplace.plentymarkets.com/amazonpaycheckout_55304) und können sie von dort
 wie gewohnt installieren und updaten.
 
 ### GitHub
@@ -75,8 +75,6 @@ Damit das Plugin mit Amazon Pay kommunizieren kann, müssen im ersten Schritt de
 Zugangsdaten hinterlegt werden. Sie finden diese in
 Ihrer [Sellercentral](https://sellercentral-europe.amazon.com/gp/pyop/seller/integrationcentral/). Sie die Daten zu
 übernehmen sind, sehen Sie in diesem Video:
-!!! warning "TODO"
-    Dieses Video muss nach Update in der Sellercentral neu aufgenommen werden
 <video controls width="100%">
 <source src="video/sellercentral.mp4" type="video/mp4">
 Sorry, your browser doesn't support embedded videos.

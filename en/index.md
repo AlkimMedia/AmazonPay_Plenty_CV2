@@ -1,213 +1,216 @@
-##ENG
-_Amazon Pay Checkout v2_ ist die neue Conversion optimierte Checkout-Lösung von Amazon Pay mit nahtloser Integration in
-den plentyShop LTS.  
-Ermöglichen Sie es über 300 Millionen von Amazon-Kunden, sich auf Ihrer Website einzuloggen und zu bezahlen. Jeder
-Amazon Kunde kann diese Zahlungsart sofort in Ihrem Shop nutzen.
+!!! warning "Translation"
+    This document has been translated automatically. It may contain minor translation errors and the videos' audio track is still in German.
+##About this plugin
+_Amazon Pay Checkout v2_ is the new conversion optimised checkout solution from Amazon Pay with seamless integration into the plentyShop LTS.
+the plentyShop LTS.  
+Enable over 300 million Amazon customers to log in and pay on your website. Every
+Amazon customer can use this payment method immediately in your shop.
 
-## Voraussetzungen
+## Requirements
 
-### Systemvorraussetzungen
+### System requirements
 
 * [x] plentyShop LTS Version 5+
 * [x] IO Plugin Version 5+
 
-## Amazon Händler-Konto
+## Amazon merchant account
 !!! info
-    Wenn Sie bereits ein aktives Amazon Pay Konto besitzen, das Sie z.B. mit anderen Plugins genutzt haben, können Sie diesen Schritt überspringen. 
-### Amazon Händler-Konto einrichten
+    If you already have an active Amazon Pay account that you have used with other plugins, for example, you can skip this step.
 
-Um Amazon Pay nutzen zu können, benötigen Sie ein Amazon Pay Händlerkonto, auch wenn Sie bereits ein anderes Amazon
-Verkäufer-Konto haben. Um den Registrierungsprozess zu beginnen, gehen Sie auf die Amazon
-Pay-Website (https://pay.amazon.de) und klicken Sie auf die Schaltfläche 'Registrieren' in der oberen rechten Ecke der
-Webseite.
+### Set up Amazon merchant account
 
-!!! danger "Wichtig"
-    Sie können bei der Einrichtung eines Amazon Pay-Händlerkontos kein bestehendes Konto verwenden, dass Sie bereits für den
-    Verkauf bei Amazon nutzen.
+In order to use Amazon Pay, you need an Amazon Pay merchant account, even if you already have another Amazon
+merchant account. To begin the registration process, go to the Amazon
+Pay website (https://pay.amazon.de) and click the 'Register' button in the upper right corner of the
+web page.
 
-Die mit Ihrem neuen Amazon Pay Händlerkonto verknüpfte E-Mail-Adresse muss sich von der E-Mail-Adresse unterscheiden,
-die Sie für jedes andere Amazon-Konto verwenden.   
-Außerdem stellen Sie bitte sicher, dass Sie sich von allen Amazon-Konten abgemeldet haben, bevor Sie mit dem Amazon
-Pay-Registrierungsprozess beginnen.
+!!! danger "Important"
+    When setting up an Amazon Pay merchant account, you cannot use an existing account that you already use for
+    for selling on Amazon.
 
-### Benötigte Informationen
+The email address associated with your new Amazon Pay merchant account must be different from the email address,
+you use for any other Amazon account.   
+Also, please ensure that you have signed out of all Amazon accounts before you begin the Amazon
+Pay registration process.
 
-Sie müssen Ihre Geschäftsinformationen angeben, um sich für ein Amazon Payments Händlerkonto zu registrieren. Bitte
-achten Sie darauf, die Informationen so einzugeben, dass sie genau mit den Angaben in Ihren offiziellen
-Nachweisdokumenten übereinstimmen.
-Die Informationen auf diesen Registrierungsseiten werden von Amazon überprüft, und falsche oder abweichende Angaben
-können zu Verzögerungen führen.
-Weitere Informationen finden Sie unter https://pay.amazon.de/help/202153180
+### Required information
+
+You will need to provide your business information to register for an Amazon Payments merchant account. Please
+be sure to enter the information so that it exactly matches the information in your official verification documents.
+official verification documents.
+The information on these registration pages is verified by Amazon, and incorrect or discrepant information may result in delays.
+may result in delays.
+For more information, please visit https://pay.amazon.de/help/202153180
 
 ##Installation
 
-!!! tip "Test-Plugin-Set"
-    Wie bei jedem Eingriff in Ihr System, sollten Sie alles vorab in einem Test-Plugin-Set ausführen und erst nach geprüfter
-    Funktionalität live verwenden.
+!!! tip "Test Plugin Set"
+    As with any intervention in your system, you should run everything in a test plug-in set in advance and only use it live after you have checked its
+    functionality.
 
 ### Plenty Marketplace
 
-Sie finden die aktuelle Version im [plentyMarketplace](https://marketplace.plentymarkets.com/) und können sie von dort
-wie gewohnt installieren und updaten.
+You will find the current version in the [plentyMarketplace](https://marketplace.plentymarkets.com/amazonpaycheckout_55304) and can install and update it from there as usual.
+install and update it as usual.
 
 ### GitHub
-Der Amazon Pay Button ist ausgegraut. Was kann ich tun?
-Alternativ und für schnellere Updates können Sie gern auch
-direkt [unser GitHub Repository](https://github.com/AlkimMedia/AmazonPay_Plenty_CV2) zum Einbinden nutzen. Im "main"
-Branch werden alle Updates kontinuierlich veröffentlicht. Für bestimmte Versionen gibt es eigenständige Branches.
+The Amazon Pay button is greyed out. What can I do?
+Alternatively, and for faster updates, you are also welcome to
+directly [our GitHub repository](https://github.com/AlkimMedia/AmazonPay_Plenty_CV2) for integration. In the "main"
+branch all updates are published continuously. There are separate branches for certain versions.
 
-### Logos einbinden
+### Including logos
 
-Wenn Sie in Ihrem Theme Logos der unterstützten Zahlarten anzeigen, finden Sie hier eine Auswahl an Amazon Pay Logos in
-verschiedenen Farben und Formaten:  
-[:fontawesome-solid-download: Logos herunterladen](images/amazon_pay_logo_pack.zip){:.md-button.md-button--primary.block.center.mt5}
+If you display logos of the supported payment methods in your theme, you will find a selection of Amazon Pay logos here in
+different colours and formats:  
+[:fontawesome-solid-download: Download Logos](images/amazon_pay_logo_pack.zip){:.md-button.md-button--primary.block.centre.mt5}
 
-## Konfiguration
+## Configuration
 
-### Plugin-Einrichtung
+### Plugin setup
 
 !!! info
-    Alle Einstellungsmöglichkeiten sind wie gewohnt in der _Plugin-Set-Übersicht_ zu finden.
+    All setting options can be found as usual in the _Plugin-Set-Overview_.
 
-### Sellercentral-Daten übernehmen
+### Take over Sellercentral data
 
-Damit das Plugin mit Amazon Pay kommunizieren kann, müssen im ersten Schritt der Konfiguration die Amazon Pay
-Zugangsdaten hinterlegt werden. Sie finden diese in
-Ihrer [Sellercentral](https://sellercentral-europe.amazon.com/gp/pyop/seller/integrationcentral/). Sie die Daten zu
-übernehmen sind, sehen Sie in diesem Video:
-!!! warning "TODO"
-    Dieses Video muss nach Update in der Sellercentral neu aufgenommen werden
+In order for the plugin to be able to communicate with Amazon Pay, the Amazon Pay access data must be stored in the first step of the configuration.
+access data must be stored in the first step of the configuration. You will find these in
+your [Sellercentral](https://sellercentral-europe.amazon.com/gp/pyop/seller/integrationcentral/). You can see how to
+you can see in this video:
+
 <video controls width="100%">
 <source src="video/sellercentral.mp4" type="video/mp4">
 Sorry, your browser doesn't support embedded videos.
 </video>
 
-### IPN einrichten
-__🎞️ Alle Infos zur IPN in diesem Video__
+### Set up IPN
+__🎞️ All the info on the IPN in this video__
 <video controls width="100%">
 <source src="video/ipn.mp4" type="video/mp4">
 Sorry, your browser doesn't support embedded videos.
 </video>
 
-!!! danger "Sandbox / Produktion"
-    Die Konfiguration der IPN muss für Sandbox und die Produktivumgebung jeweils separat vorgenommen werden.
+!!! danger "Sandbox / Production"
+    The configuration of the IPN must be done separately for the sandbox and the production environment.
 
-Die IPN (_Instant Payment Notification_) sorgt dafür, dass Ihr plentymarkets System in Echtzeit über den aktuellen Stand
-der Zahlungen informiert wird.
-Hinterlegen Sie dafür in Ihrer Sellercentral unter [_Einstellungen_ »
-_Integrationseinstellungen_](https://sellercentral-europe.amazon.com/gp/pyop/seller/account/settings/user-settings-view.html) `https://www.domain.com/payment/amazon-pay-ipn/` (`www.domain.com`
-bitte durch deine Shop-Domain ersetzen) als _Händler-URL_.
+The IPN (_Instant Payment Notification_) ensures that your plentymarkets system is informed in real time about the current status of payments.
+of payments in real time.
+To do this, store the IPN in your Sellercentral under [_Settings_ "
+_Integration Settings_](https://sellercentral-europe.amazon.com/gp/pyop/seller/account/settings/user-settings-view.html) `https://www.domain.com/payment/amazon-pay-ipn/` (`www.domain.com`)
+please replace with your shop domain) as _merchant URL_.
 
-### Container-Verknüpfungen
-Folgende Container-Verknüpfungen sollten gesetzt werden. Bitte beachten Sie, dass die Standard-Verknüpfungen nur teilweise ausreichen, weil diese lediglich eine 1:1 Zuordnung erlauben.
+### Container links
+The following container links should be set. Please note that the standard links are only partially sufficient because they only allow a 1:1 allocation.
 
 !!! success "Amazon Pay Checkout - Button"
-    Dieser Content erzeugt den Button, der den Kunden zum Amazon Checkout weiterleitet. Grundsätzlich kannst du ihn überall platzieren, wo er dir sinnvoll erscheint. Die folgende Liste gibt Vorschläge, aber insbesondere, ob du ihn bei "Shopping cart" und "Shopping cart preview" eher vor oder nach dem normalen Checkout-Button anzeigen möchtest, ist natürlich dir überlassen
-    
+    This content creates the button that redirects the customer to Amazon Checkout. In principle, you can place it anywhere that makes sense to you. The following list provides suggestions, but it is of course up to you whether you want to display it before or after the normal checkout button in "Shopping cart" and "Shopping cart preview".
+
     ✓ Shopping cart: After "Checkout" button  
     ✓ Shopping cart overlay: Extend buttons  
     ✓ Shopping cart preview: After "Checkout" button  
 
-!!! success "Amazon Pay Checkout - Button auf Artikelseite (Schnellkauf)"
-    ✓ Single item: After "Add to shopping cart" button 
+!!! success "Amazon Pay Checkout - Button on item page (quick purchase)"
+    ✓ Single item: After "Add to shopping cart" button
 
 !!! success "Amazon Pay Login - Button"
     ✓ Login overlay: Container in a row with the buttons
     ✓ Registration overlay: Container in a row with the buttons
 
 ### ShopBuilder
-Um die Amazon Buttons auf Seiten einzubinden, die mit dem ShopBuilder gestaltet wurden, kann das Code-Element verwendet werden.
+To integrate the Amazon buttons on pages designed with the ShopBuilder, the code element can be used.
 !!! note "Login-Button"
-    Verwenden Sie diesen Code für einen Login-Button, der ein Kundenkonto anlegt, aber den Kunden nicht notwendigerweise zur Kasse führt:
-    
+    Use this code for a login button that creates a customer account but does not necessarily lead the customer to the checkout:
+
     `<div class="amazon-login-button"></div>`
 
-!!! note "Checkout-Button"
-    Verwenden Sie diesen Code für einen Checkout-Button, der den Amazon Pay Checkout einleitet:
+!!! note "Checkout button"
+    Use this code for a checkout button that initiates the Amazon Pay checkout:
 
     `<div class="amazon-pay-button"></div>`
 
-### Sonstige Plugin-Einstellungen
-__🎞️ Alle Infos zu den Einstellungen in diesem Video__
+### Other plugin settings
+__🎞️ All info about the settings in this video__
 <video controls width="100%">
 <source src="video/settings.mp4" type="video/mp4">
 Sorry, your browser doesn't support embedded videos.
 </video>
+
 <dl>
-<dt>Sandbox aktivieren</dt>
-<dd>Schaltet das Plugin in den Sandbox-Modus. Dabei werden keine echten Zahlungen ausgelöst. Bitte beachte, dass es für den Sandbox-Modus in Sellercentral eigene Konfigurationsmöglichkeiten gibt.</dd>
-<dt>Buttons verstecken (debug)</dt>
-<dd>Versteckt die Buttons im Frontend mit CSS (display:none), sodass du im Frontend testen kannst, ohne dass deine Kunden beeinträchtigt werden. (siehe <a href="#testen">Testen</a>)</dd>
-<dt>Art der Autorisierung</dt>
-<dd>Hiermit können Sie einstellen, wann die Autorisierung der Zahlung durchgeführt werden soll. Wenn Sie keine besonderen Anforderungen haben, sollten Sie es hier bei der Standard-Einstellung belassen.
-Bei Auswahl der Standard-Einstellung `Unbedingt während des Checkouts` versucht das Plugin, die Zahlung bereits während des Checkouts zu autorisieren, 
-um den Kunden im Fall einer Ablehnung zur Auswahl einer anderen Zahlungsart zu bewegen. 
+<dt>Enable sandbox</dt>
+<dd>Switches the plugin into sandbox mode. This will not trigger any real payments. Please note that there are separate configuration options for sandbox mode in Sellercentral.</dd>
+<dt>Hide buttons (debug)</dt>
+<dd>Hide the buttons in the frontend with CSS (display:none) so you can test in the frontend without affecting your customers. (see <a href="#test">test</a>)</dd>
+<dt>Type of authorisation</dt>
+<dd>This allows you to set when the payment should be authorised. If you have no special requirements, you should leave it at the default setting here.
+If you select the default setting 'Unconditionally during checkout', the plug-in will attempt to authorise the payment during checkout, 
+in order to persuade the customer to select a different payment method in the event of rejection. 
 </dd>
-<dt>Art des Zahlungseinzugs</dt>
-<dd>In den allermeisten Fällen ist der Einzug direkt nach Autorisierung die beste Wahl.</dd>
-<dt>Auftragsstatus nach erfolgreicher Autorisierung</dt>
-<dd>Hier können Sie eine Status-ID hinterlegen (z.B. 5.0). Diese wird nach erfolgreicher Autorisierung gesetzt, um zu signalisieren, dass die Ware versendet werden kann. Um die Warenbestandsautomatik zu nutzen, kann hier auch "4/5" eingetragen werden, damit der Status je nach Bestand auf 4.0 oder 5.0 gesetzt wird.</dd>
-<dt>E-Mail-Adresse für Versandadresse verwenden</dt>
-<dd>Wenn diese Einstellung aktiviert ist, wird die E-Mail-Adresse des Kunden in die Versandadresse aufgenommen (z.B. zur Übergabe an Paketdienste)</dd>
+<dt>Type of payment collection</dt>
+<dd>In the vast majority of cases, direct debit after authorisation is the best choice.</dd>
+<dt>Order status after successful authorisation</dt>
+<dd>Here you can store a status ID (e.g. 5.0). This is set after successful authorisation to indicate that the goods can be dispatched. In order to use the automatic inventory system, "4/5" can also be entered here so that the status is set to 4.0 or 5.0, depending on the inventory.</dd>
+<dt>Use email address for shipping address</dt>
+<dd>If this setting is activated, the customer's e-mail address is included in the shipping address (e.g. for handing over to parcel services)</dd>
 </dl>
 
-##Zahlungsablauf
-Eine Amazon Pay Zahlung besteht aus zwei Teilen: Einer Autorisierung und dem eigentlichen Zahlungseinzug. Sie haben so
-die Möglichkeit, die Zahlung erst bei Versand einzuziehen, da Amazon Pay für eine bestimmte Zeit den erfolgreichen
-Zahlungseinzug garantiert. Trotzdem ist es vorteilhaft, die Zahlung sofort einzuziehen, da es sonst aus
-Sicherheitsgründen nötig sein kann, dass der Kunde die Zahlung erneut bestätigen muss, was zu Verzögerungen führen kann.
+##Payment process
+An Amazon Pay payment consists of two parts: An authorisation and the actual payment collection. This gives you
+the option of not collecting the payment until it is shipped, as Amazon Pay guarantees the successful
+collection for a certain period of time. Nevertheless, it is advantageous to collect the payment immediately, as it may otherwise be necessary for the
+Otherwise, for security reasons, it may be necessary for the customer to reconfirm the payment, which can lead to delays.
 
-Sie haben in den Plugin-Einstellungen vielfältige Möglichkeiten, den für Sie passenden Zahlungsablauf einzustellen.
+You have a variety of options in the plugin settings to set the payment process that suits you best.
 
-!!! info "Schnellstart"
-    Wenn Sie keine besonderen Anforderungen an Ihren Zahlungsablauf haben, können Sie die ursprünglichen Einstellungen
-    beibehalten. Dann wird die Zahlung immer sofort eingezogen und Sie müssen lediglich Erstattungen entweder per
-    Ereignisaktion oder direkt in der Sellercentral vornehmen.
+!!! info "Quick start"
+    If you have no special requirements for your payment process, you can keep the original settings.
+    retained. In this case, the payment is always collected immediately and you only have to make refunds either per
+    event procedure or directly in Sellercentral.
 
-### Ereignisaktionen
+### Event Procedures
 
-!!! danger "Wichtig"
-    Bei den Ereignisaktionen wird die Plugin-Konfiguration des Hauptmandanten geladen. Bitte konfigurieren Sie das Plugin
-    daher auch vollständig mit allen Zugangsdaten im Plugin-Set des Hauptmandanten.
-    Ereignisaktionen können eingerichtet werden unter: `Einrichtung` > `Aufträge` > `Ereignisse`.
+!!! danger "Important"
+    With event procedures, the plugin configuration of the main client is loaded. Please configure the plugin
+    with all access data in the plug-in set of the main client.
+    event procedures can be set up under: `set-up` > `orders` > `events`.
 
-#### Vollständiger Einzug der Amazon Pay Zahlung
+#### Complete collection of Amazon Pay payment
 
-Diese Ereignisaktion muss nur dann eingerichtet werden, wenn der Zahlungseinzug nicht direkt nach Autorisierung erfolgen
-soll. Sinnvoll ist eine Kopplung an den Versand, also z.B. an den Statuswechsel auf `[7] Warenausgang gebucht`.
+This event procedure only needs to be set up if the payment is not to be collected directly after authorisation.
+should be made. It makes sense to link it to the dispatch, e.g. to the status change to `[7] Shipped`.
 
-Dies könnte z.B. so aussehen:
+This could look like this
 ![](images/event_procedure_capture.png)
 
-#### Erstattung der Amazon Pay Zahlung
+#### Refund of Amazon Pay payment
 
-Um Kunden eine Zahlung im Fall einer Gutschrift zu erstatten, z.B. bei einer Retoure, könnten Sie diese Ereignisaktion
-beispielsweise für den Statuswechsel einer Gutschrift oder die Anlage des Gutschriftdokuments einrichten. Die Aktion
-veranlasst eine Rückzahlung in Höhe der Gutschrift, die Sie angelegt haben.
+In order to refund customers a payment in the case of a credit note, e.g. in the case of a return, you could use this event procedure
+for example, for the status change of a credit note or the creation of the credit note document. The action
+initiates a refund in the amount of the credit memo you created.
 
-Dies könnte z.B. so aussehen:
+This could look like this
 ![](images/event_procedure_refund.png)
 
-##Testen
+##Test
 
 ###Sandbox
-Zum Testen der Integration empfiehlt es sich, in den Sandbox-Modus zu schalten, da dann keine realen Transaktionen
-vorgenommen werden. Um Amazon Pay in Ihrem Shop Frontend aus Kundensicht zu testen, benötigen Sie einen speziellen
-Test-Account, da in der Sandbox reale Login-Daten von Amazon Konten nicht funktionieren. Einen Test-Account können Sie
-hier in Ihrer Sellercentral anlegen:  
+To test the integration, it is advisable to switch to sandbox mode, as no real transactions are then
+are carried out. To test Amazon Pay in your shop frontend from the customer's point of view, you need a special test account.
+test account, as real login data from Amazon accounts do not work in the sandbox. You can create a test account
+create a test account here in your Sellercentral:  
 [https://sellercentral.amazon.de/gp/pyop/seller/testing](https://sellercentral.amazon.de/gp/pyop/seller/testing)
 
-Eine englische Video-Anleitung stellt Amazon Pay hier zur Verfügung:  
-[Youtube-Video](https://www.youtube.com/watch?v=UFK4cnxH3F4)
+Amazon Pay provides an English video tutorial here:  
+[Youtube video](https://www.youtube.com/watch?v=UFK4cnxH3F4)
 
-###Versteckte Buttons
-Wenn Sie in Ihrem Live-Shop testen, können Sie die Amazon Pay Buttons ausblenden lassen, indem Sie bei der
-Plugin-Konfiguration die Option "Buttons verstecken (debug)" anwählen. Um die versteckten Buttons anzuzeigen, können Sie
-diesen Befehl in Ihre Browser-Konsole eingeben:
+###Hidden buttons
+If you are testing in your live shop, you can have the Amazon Pay buttons hidden by setting the option "Buttons" in the
+plugin configuration by selecting the option "Hide buttons (debug)". In order to display the hidden buttons, you can
+enter this command in your browser console:
 
     jQuery('.amazon-pay-button, .amzLoginButton').css('cssText', 'display:block !important;');
 
-##Hilfe
-Sollten noch Fragen offen sein oder unerwartete Probleme auftauchen, kontaktieren Sie bitte unseren Support.
+##Help
+If you still have questions or unexpected problems, please contact our support.
 
-[:fontawesome-solid-envelope: Support kontaktieren](mailto:info@alkim.de){:.md-button.md-button--primary.block.center.mt5}
+[:fontawesome-solid-envelope: contact support](mailto:info@alkim.de){:.md-button.md-button--primary.block.centre.mt5}

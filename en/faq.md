@@ -1,11 +1,10 @@
-## Der Amazon Pay Button ist ausgegraut. Was kann ich tun?
+## The Amazon Pay button is disabled in the frontend. What can I do?
 
-Ein ausgegrauter Button bedeutet, dass der Amazon Pay Account nicht aktiv und freigeschaltet ist.
+A disabled button means that the Amazon Pay account is not active and approved.
 
-**Mögliche Ursachen:**  
+**Possible causes:**
 
-1. Ein neuer Account wurde noch nicht freigeschaltet, weil Dokumente fehlen
-2. Der "JavaScript-Ursprung" ist nicht korrekt hinterlegt
+1. A fresh account has not yet been activated because documents are missing
+2. The "JavaScript origin" is not correctly entered
 
-Falls euch davon nichts geholfen hat, wendet euch bitte an euren Amazon Pay Ansprechpartner oder unseren [Support](mailto:info@alkim.de) mit Angabe eurer Amazon Pay
-Händler-ID.
+If none of this has helped you, please contact Amazon Pay or our [Support](mailto:info@alkim.de) providing your Amazon Pay Merchant ID.
