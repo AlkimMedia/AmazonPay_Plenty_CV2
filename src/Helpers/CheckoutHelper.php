@@ -333,6 +333,7 @@ class CheckoutHelper
         return [
             'webCheckoutDetails' => [
                 'checkoutResultReturnUrl' => $existingOrder === null ? $configHelper->getCheckoutResultReturnUrl() : $configHelper->getPayExistingOrderCheckoutResultReturnUrl($existingOrder->id),
+                'checkoutCancelUrl' => $configHelper->getAbsoluteUrl('checkout'),
                 'checkoutMode' => 'ProcessOrder',
             ],
             'storeId' => $configHelper->getConfigurationValue('storeId'),

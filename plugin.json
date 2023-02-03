@@ -2,19 +2,19 @@
   "name": "AmazonPayCheckout",
   "namespace": "AmazonPayCheckout",
   "marketplaceName": {
-    "de": "Amazon Pay v2",
-    "en": "Amazon Pay v2"
+    "de": "Amazon Pay Checkout v2",
+    "en": "Amazon Pay Checkout v2"
   },
   "description": "The official Amazon Pay plugin for plentymarkets",
   "shortDescription": {
-    "de": "Das offizielle, von alkim media (Certified Developer Amazon Pay) entwickelte Amazon Pay v2 Plugin für den plentyShop LTS",
-    "en": "The official Amazon Pay v2 plugin developed by alkim media (Certified Developer Amazon Pay) for plentyShop LTS"
+    "de": "Das offizielle, von alkim media (Certified Developer Amazon Pay) entwickelte Amazon Pay Checkout v2 Plugin für den plentyShop LTS",
+    "en": "The official Amazon Pay Checkout v2 plugin developed by alkim media (Certified Developer Amazon Pay) for plentyShop LTS"
   },
   "type": "payment",
   "categories": [
     "3519"
   ],
-  "version": "1.0.2",
+  "version": "1.0.2-a",
   "license": "AGPL-3.0",
   "pluginIcon": "icon_plugin_xs.png",
   "price": 0.0,
