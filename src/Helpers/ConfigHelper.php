@@ -2,6 +2,7 @@
 
 namespace AmazonPayCheckout\Helpers;
 
+use IO\Extensions\Constants\ShopUrls;
 use IO\Services\SessionStorageService;
 use IO\Services\UrlBuilder\UrlQuery;
 use IO\Services\WebstoreConfigurationService;
@@ -108,6 +109,17 @@ class ConfigHelper
     public function getCheckoutStartUrl(): string
     {
         return $this->getAbsoluteUrl('payment/amazon-pay-checkout-start');
+    }
+
+    public function getShopCheckoutUrl():string
+    {
+        return $this->getAbsoluteUrl($this->getShopCheckoutUrlRelative());
+    }
+    public function getShopCheckoutUrlRelative():string
+    {
+        /** @var ShopUrls $shopUrls */
+        $shopUrls = pluginApp(ShopUrls::class);
+        return $shopUrls->checkout;
     }
 
     public function getLocale(): string
