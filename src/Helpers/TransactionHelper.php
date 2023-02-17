@@ -36,24 +36,22 @@ class TransactionHelper
     {
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
-        /** @var OrderHelper $orderHelper */
-        $orderHelper = pluginApp(OrderHelper::class);
+
         $chargeTransaction = $this->persistTransaction($charge, Transaction::TRANSACTION_TYPE_CHARGE, $orderId);
         $orderId = $chargeTransaction->order;
 
         if ($chargeTransaction->status === StatusDetails::CAPTURED && !empty($orderId)) {
             if (!$chargeTransaction->adminInformed) {
-                $payment = $orderHelper->createPaymentObject($charge->captureAmount->amount, Payment::STATUS_CAPTURED, $charge->chargeId, '', null, Payment::PAYMENT_TYPE_CREDIT, Payment::TRANSACTION_TYPE_BOOKED_POSTING, $charge->captureAmount->currencyCode);
-                $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $orderHelper->getOrder($orderId));
+                $payment = $this->createPaymentObjectForCapturedCharge($charge, $orderId);
                 $chargeTransaction->adminInformed = 1;
                 $chargeTransaction->paymentId = $payment->id;
                 $this->transactionRepository->saveTransaction($chargeTransaction);
             }
-        }elseif ($chargeTransaction->status === StatusDetails::AUTHORIZED){
-            if($orderId){
-                $orderHelper->setOrderStatusAuthorized($orderId);
-            }
-            if($configHelper->getConfigurationValue('captureMode') === 'after_auth') {
+        } elseif ($chargeTransaction->status === StatusDetails::AUTHORIZED && !empty($orderId)) {
+            /** @var OrderHelper $orderHelper */
+            $orderHelper = pluginApp(OrderHelper::class);
+            $orderHelper->setOrderStatusAuthorized($orderId);
+            if ($configHelper->getConfigurationValue('captureMode') === 'after_auth') {
                 $this->log(__CLASS__, __METHOD__, 'autoCapture', '', ['charge' => $chargeTransaction]);
                 /** @var ApiHelper $apiHelper */
                 $apiHelper = pluginApp(ApiHelper::class);
@@ -67,15 +65,30 @@ class TransactionHelper
 
 
     /**
+     * @param $charge
+     * @param $orderId
+     * @return Payment
+     */
+    protected function createPaymentObjectForCapturedCharge($charge, $orderId)
+    {
+        /** @var OrderHelper $orderHelper */
+        $orderHelper = pluginApp(OrderHelper::class);
+        $payment = $orderHelper->createPaymentObject($charge->captureAmount->amount, Payment::STATUS_CAPTURED, $charge->chargeId, '', null, Payment::PAYMENT_TYPE_CREDIT, Payment::TRANSACTION_TYPE_BOOKED_POSTING, $charge->captureAmount->currencyCode);
+        $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $orderHelper->getOrder($orderId));
+        return $payment;
+    }
+
+
+    /**
      * @param $refund
      * @param null $orderId
      * @throws Exception
      */
     public function updateRefund($refund, $orderId = null)
     {
-        $this->log(__CLASS__, __METHOD__, 'start', '', ['refund' => $refund, 'order'=>$orderId]);
+        $this->log(__CLASS__, __METHOD__, 'start', '', ['refund' => $refund, 'order' => $orderId]);
         $refundTransaction = $this->persistTransaction($refund, Transaction::TRANSACTION_TYPE_REFUND, $orderId);
-        $orderId             = $refundTransaction->order;
+        $orderId = $refundTransaction->order;
         $this->log(__CLASS__, __METHOD__, 'after_persist', '', ['transaction' => $refundTransaction]);
         if ($refundTransaction->status === StatusDetails::REFUNDED && !empty($orderId)) {
             if (!$refundTransaction->adminInformed) {
@@ -100,7 +113,7 @@ class TransactionHelper
      */
     public function persistTransaction($transactionStruct, $type, $orderId = null, $paymentId = null): Transaction
     {
-        $this->log(__CLASS__, __METHOD__, 'start', '', ['struct'=>$transactionStruct, 'type'=>$type, 'orderId'=>$orderId, 'paymentId'=>$paymentId]);
+        $this->log(__CLASS__, __METHOD__, 'start', '', ['struct' => $transactionStruct, 'type' => $type, 'orderId' => $orderId, 'paymentId' => $paymentId]);
         /** @var Transaction $transaction */
         if ($type === Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION) {
             $transaction = $this->getChargePermissionTransaction($transactionStruct);
@@ -195,13 +208,13 @@ class TransactionHelper
      */
     protected function getRefundTransaction($refund): Transaction
     {
-            $transaction = $this->getTransaction($refund->refundId, Transaction::TRANSACTION_TYPE_REFUND);
-            $transaction->amount = (float)$refund->refundAmount->amount;
-            $transaction->currency = $refund->refundAmount->currencyCode;
-            $transaction->status = $refund->statusDetails->state;
-            $transaction->time = $refund->creationTimestamp;
-            return $transaction;
-        }
+        $transaction = $this->getTransaction($refund->refundId, Transaction::TRANSACTION_TYPE_REFUND);
+        $transaction->amount = (float)$refund->refundAmount->amount;
+        $transaction->currency = $refund->refundAmount->currencyCode;
+        $transaction->status = $refund->statusDetails->state;
+        $transaction->time = $refund->creationTimestamp;
+        return $transaction;
+    }
 
 
     /**

@@ -34,7 +34,7 @@ class CheckoutHelper
         $basketRepository = pluginApp(BasketRepositoryContract::class);
         $basket = $basketRepository->load();
 
-        if(!empty($basket) && !empty($basket->itemSum)) {
+        if (!empty($basket) && !empty($basket->itemSum)) {
             /** @var VatService $vatService */
             $vatService = pluginApp(VatService::class);
             $vats = $vatService->getCurrentTotalVats();
@@ -44,19 +44,9 @@ class CheckoutHelper
             if (!is_null($order)) {
                 $isNet = $order->isNet;
             }
-
             if (empty($vats) && $isNet) {
                 $basket->basketAmount = $basket->basketAmountNet;
             }
-            $this->log(__CLASS__, __METHOD__, 'basket', '', [
-                'basket' => $basket,
-                'order' => $order,
-                'vats' => $vats,
-            ]);
-        }else{
-            $this->log(__CLASS__, __METHOD__, 'basket', '', [
-                'basket' => $basket,
-            ]);
         }
 
         return $basket;
@@ -101,11 +91,10 @@ class CheckoutHelper
 
     public function executePayment(Order $order, string $checkoutSessionId)
     {
-
         $this->log(__CLASS__, __METHOD__, 'start', '', ['order' => $order, 'session' => $checkoutSessionId]);
+
         /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
 
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
@@ -137,6 +126,7 @@ class CheckoutHelper
                         $charge = $apiHelper->getCharge($checkoutSession->chargeId);
                         $transactionHelper->updateCharge($charge, $order->id);
                     }
+
                     $chargePermission = $apiHelper->getChargePermission($checkoutSession->chargePermissionId);
                     $transactionHelper->persistTransaction($chargePermission, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION, $order->id, $payment->id);
 
@@ -144,7 +134,6 @@ class CheckoutHelper
                         $charge = $apiHelper->getCharge($checkoutSession->chargeId);
                         $transactionHelper->updateCharge($charge, $order->id);
                     }
-
                 }
             } catch (Exception $e) {
                 $this->log(__CLASS__, __METHOD__, 'error', '', [$e->getMessage(), $order], true);
@@ -363,6 +352,7 @@ class CheckoutHelper
 
     public function hasAvailableShippingMethod(): bool
     {
+        //TODO Logging here and in child methods (getBasket) necessary?
         $params = [
             'countryId' => $this->getShippingCountryId(),
             'webstoreId' => pluginApp(Application::class)->getWebstoreId(),
@@ -377,21 +367,18 @@ class CheckoutHelper
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
         $paymentMethodId = $paymentMethodHelper->createMopIfNotExistsAndReturnId();
         $shippingMethods = $repo->getLastWeightedPresetCombinations($basket, $accountContactClassId, $params);
-        $this->log(__CLASS__, __METHOD__, 'result', '', ['basket' => $basket, 'result' => $shippingMethods]);
         foreach ($shippingMethods as $shippingMethod) {
             $excludedMethods = [];
-            if(!empty($shippingMethod->excludedPaymentMethodIds)){
+            if (!empty($shippingMethod->excludedPaymentMethodIds)) {
                 $excludedMethods = $shippingMethod->excludedPaymentMethodIds;
-            }elseif(!empty($shippingMethod['excludedPaymentMethodIds'])){
+            } elseif (!empty($shippingMethod['excludedPaymentMethodIds'])) {
                 $excludedMethods = $shippingMethod['excludedPaymentMethodIds'];
             }
 
             if (empty($excludedMethods) || !in_array($paymentMethodId, $excludedMethods)) {
-                $this->log(__CLASS__, __METHOD__, 'return_true', '', [$shippingMethod, $paymentMethodId, $excludedMethods]);
                 return true;
             }
         }
-        $this->log(__CLASS__, __METHOD__, 'return_false', '', [$shippingMethods]);
         return false;
     }
 

@@ -7,7 +7,7 @@ use Plenty\Plugin\Templates\Twig;
 
 class DataProviderReinitializeButton
 {
-    public function call(Twig $twig, $arg):string
+    public function call(Twig $twig, $arg): string
     {
         /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);

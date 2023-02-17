@@ -7,7 +7,6 @@ use Plenty\Plugin\Templates\Twig;
 
 class DataProviderLoginButton
 {
-
     public function call(Twig $twig)
     {
         /** @var \AmazonPayCheckout\Helpers\ConfigHelper $helper */

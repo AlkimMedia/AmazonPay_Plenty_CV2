@@ -14,6 +14,7 @@ use Plenty\Plugin\ConfigRepository;
 class ConfigHelper
 {
     const AVAILABLE_LOCALES = ['en_GB', 'de_DE', 'fr_FR', 'it_IT', 'es_ES'];
+    const CUSTOM_INFORMATION_STRING = 'Created by Alkim Media, plentymarkets, v';
 
     /**
      * @var ConfigRepository
@@ -154,7 +155,7 @@ class ConfigHelper
 
     public function getCustomInformationString(): string
     {
-        return 'Created by Alkim Media, plentymarkets, v'.$this->getPluginVersion();
+        return static::CUSTOM_INFORMATION_STRING.$this->getPluginVersion();
     }
 
     public function getPluginVersion(){

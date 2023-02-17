@@ -184,7 +184,7 @@ class FrontendController extends Controller
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
         $this->log(__CLASS__, __METHOD__, 'info', '', [$checkoutSession]);
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
-            return $this->response->redirectTo('place-order');
+            return $this->response->redirectTo('place-order'); //TODO language?
         } else {
             /** @var CheckoutHelper $checkoutHelper */
             $checkoutHelper = pluginApp(CheckoutHelper::class);
@@ -270,19 +270,22 @@ class FrontendController extends Controller
         ]);
     }
 
-    private function getShopCheckoutUrl(){
+    private function getShopCheckoutUrl()
+    {
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
         return $configHelper->getShopCheckoutUrlRelative();
     }
 
-    private function getShopAccountUrl(){
+    private function getShopAccountUrl()
+    {
         /** @var ShopUrls $shopUrls */
         $shopUrls = pluginApp(ShopUrls::class);
         return $shopUrls->myAccount;
     }
 
-    private function getShopBasketUrl(){
+    private function getShopBasketUrl()
+    {
         /** @var ShopUrls $shopUrls */
         $shopUrls = pluginApp(ShopUrls::class);
         return $shopUrls->basket;

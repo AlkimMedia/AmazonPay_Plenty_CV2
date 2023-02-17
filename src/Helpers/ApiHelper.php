@@ -135,6 +135,10 @@ class ApiHelper
         return $signature;
     }
 
+    /**
+     * @param string $chargePermissionId
+     * @return ChargePermission
+     */
     public function getChargePermission(string $chargePermissionId)
     {
         $response = $this->call('getChargePermission', [
