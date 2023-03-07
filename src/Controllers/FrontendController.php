@@ -107,7 +107,7 @@ class FrontendController extends Controller
         }
 
         if (empty($checkoutSessionId)) {
-            $checkoutHelper->scheduleNotification('Bitte w&auml;hlen Sie eine Zahlungsart');
+            $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.pleaseSelectPaymentMethod'));
             return $this->response->redirectTo($this->getShopCheckoutUrl());
         }
 
@@ -189,7 +189,7 @@ class FrontendController extends Controller
             /** @var CheckoutHelper $checkoutHelper */
             $checkoutHelper = pluginApp(CheckoutHelper::class);
 
-            $checkoutHelper->scheduleNotification('Bitte w&auml;hlen Sie eine andere Zahlungsart');
+            $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.pleaseSelectAnotherPaymentMethod'));
             $sessionStorageRepository->setSessionValue('amazonCheckoutSessionId', null);
 
             $checkoutHelper->resetPaymentMethod();
@@ -247,7 +247,7 @@ class FrontendController extends Controller
             }
         }
 
-        $checkoutHelper->scheduleNotification('Bitte w&auml;hlen Sie eine andere Zahlungsart');
+        $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.pleaseSelectAnotherPaymentMethod'));
         return $this->response->redirectTo($this->getShopCheckoutUrl());
     }
 
@@ -260,7 +260,7 @@ class FrontendController extends Controller
             $createCheckoutSessionPayload = stripslashes(json_encode($checkoutHelper->getCheckoutSessionDataForDirectCheckout($existingOrder), JSON_UNESCAPED_UNICODE));
         } catch (Exception $e) {
             $this->log(__CLASS__, __METHOD__, 'failed', '', [$e->getMessage(), $e->getTraceAsString()]);
-            $checkoutHelper->scheduleNotification('Bitte w&auml;hlen Sie eine andere Zahlungsart');
+            $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.pleaseSelectAnotherPaymentMethod'));
             return $this->response->redirectTo($this->getShopCheckoutUrl());
         }
         return $this->twig->render('AmazonPayCheckout::content.additional_payment_button', [

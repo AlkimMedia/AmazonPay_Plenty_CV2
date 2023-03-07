@@ -174,5 +174,4 @@ class ConfigHelper
         $storeName = $storeConfig->name;
         return (strlen($storeName) > 50 ? substr($storeName, 0, 46) . ' ...' : $storeName);
     }
-
 }

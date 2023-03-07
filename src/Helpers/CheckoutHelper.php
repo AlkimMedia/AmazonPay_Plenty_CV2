@@ -5,6 +5,7 @@ namespace AmazonPayCheckout\Helpers;
 use AmazonPayCheckout\Models\Transaction;
 use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
+use AmazonPayCheckout\Traits\TranslationTrait;
 use Exception;
 use Plenty\Modules\Account\Address\Contracts\AddressRepositoryContract;
 use Plenty\Modules\Account\Address\Models\AddressRelationType;
@@ -25,6 +26,7 @@ use Plenty\Plugin\Application;
 class CheckoutHelper
 {
     use LoggingTrait;
+    use TranslationTrait;
 
     public static $sessionStatusCache = [];
 
