@@ -51,7 +51,6 @@ Sie finden die aktuelle Version im [plentyMarketplace](https://marketplace.plent
 wie gewohnt installieren und updaten.
 
 ### GitHub
-Der Amazon Pay Button ist ausgegraut. Was kann ich tun?
 Alternativ und für schnellere Updates können Sie gern auch
 direkt [unser GitHub Repository](https://github.com/AlkimMedia/AmazonPay_Plenty_CV2) zum Einbinden nutzen. Im "main"
 Branch werden alle Updates kontinuierlich veröffentlicht. Für bestimmte Versionen gibt es eigenständige Branches.
@@ -73,8 +72,9 @@ verschiedenen Farben und Formaten:
 
 Damit das Plugin mit Amazon Pay kommunizieren kann, müssen im ersten Schritt der Konfiguration die Amazon Pay
 Zugangsdaten hinterlegt werden. Sie finden diese in
-Ihrer [Sellercentral](https://sellercentral-europe.amazon.com/gp/pyop/seller/integrationcentral/). Sie die Daten zu
-übernehmen sind, sehen Sie in diesem Video:
+Ihrer [Sellercentral](https://sellercentral-europe.amazon.com/gp/pyop/seller/integrationcentral/).
+
+__🎞️ Alle Infos zum Übernehmen der Zugangsdaten in diesem Video__
 <video controls width="100%">
 <source src="video/sellercentral.mp4" type="video/mp4">
 Sorry, your browser doesn't support embedded videos.
@@ -96,6 +96,9 @@ Hinterlegen Sie dafür in Ihrer Sellercentral unter [_Einstellungen_ »
 _Integrationseinstellungen_](https://sellercentral-europe.amazon.com/gp/pyop/seller/account/settings/user-settings-view.html) `https://www.domain.com/payment/amazon-pay-ipn/` (`www.domain.com`
 bitte durch deine Shop-Domain ersetzen) als _Händler-URL_.
 
+### Kundenklassen und Versandprofile
+Wie immer bei neuen Zahlungsarten sollten Sie in den Einstellungen bei den Kundenklassen und Versandprofilen die Zuordnung überprüfen bzw. so setzen, dass alle Kundinnen die Zahlungsart nutzen können. 
+
 ### Container-Verknüpfungen
 Folgende Container-Verknüpfungen sollten gesetzt werden. Bitte beachten Sie, dass die Standard-Verknüpfungen nur teilweise ausreichen, weil diese lediglich eine 1:1 Zuordnung erlauben.
 
@@ -112,7 +115,7 @@ Folgende Container-Verknüpfungen sollten gesetzt werden. Bitte beachten Sie, da
 !!! success "Amazon Pay Login - Button"
     ✓ Login overlay: Container in a row with the buttons
     ✓ Registration overlay: Container in a row with the buttons
-
+__🎞️ Alle Infos zu den Einstellungen in diesem Video__
 ### ShopBuilder
 Um die Amazon Buttons auf Seiten einzubinden, die mit dem ShopBuilder gestaltet wurden, kann das Code-Element verwendet werden.
 !!! note "Login-Button"
@@ -124,6 +127,11 @@ Um die Amazon Buttons auf Seiten einzubinden, die mit dem ShopBuilder gestaltet 
     Verwenden Sie diesen Code für einen Checkout-Button, der den Amazon Pay Checkout einleitet:
 
     `<div class="amazon-pay-button"></div>`
+
+!!! note "Artikel-Schnellkauf-Button"
+    Verwenden Sie diesen Code für einen Checkout-Button, der auf der Artikelseite den Artikel in den Warenkorb legt und den Checkout einleitet:
+
+    `<div class="amazon-add-cart-button"></div>`
 
 ### Sonstige Plugin-Einstellungen
 __🎞️ Alle Infos zu den Einstellungen in diesem Video__
