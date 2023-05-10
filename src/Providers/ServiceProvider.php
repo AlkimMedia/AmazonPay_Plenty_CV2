@@ -58,6 +58,18 @@ class ServiceProvider extends ServiceProviderParent
                     $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
                     $checkoutSessionId = $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId');
 
+                    //TODO: handle empty checkoutSessionId
+                    if (empty($checkoutSessionId)) {
+                        $this->log(__CLASS__, __METHOD__, 'checkoutSessionId_empty', [
+                            'orderId' => $orderId,
+                            'paymentMethodId'=>$event->getMop()
+                        ]);
+                        $event->setType('error');
+                        $event->setValue('The payment could not be executed!');
+                        return;
+                    }
+
+
                     /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
                     $checkoutHelper = pluginApp(CheckoutHelper::class);
                     $checkoutHelper->executePayment($order, $checkoutSessionId);

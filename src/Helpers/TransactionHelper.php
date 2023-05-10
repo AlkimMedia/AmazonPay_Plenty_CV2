@@ -111,7 +111,7 @@ class TransactionHelper
      * @return Transaction
      * @throws Exception
      */
-    public function persistTransaction($transactionStruct, $type, $orderId = null, $paymentId = null): Transaction
+    public function persistTransaction($transactionStruct, $type, $orderId = null, $paymentId = null): ?Transaction
     {
         $this->log(__CLASS__, __METHOD__, 'start', '', ['struct' => $transactionStruct, 'type' => $type, 'orderId' => $orderId, 'paymentId' => $paymentId]);
         /** @var Transaction $transaction */
@@ -123,6 +123,10 @@ class TransactionHelper
             $transaction = $this->getRefundTransaction($transactionStruct);
         } else {
             throw new Exception('Invalid Transaction Type ' . $type);
+        }
+
+        if($transaction === null) {
+            return null;
         }
 
         if ($orderId) {
@@ -156,14 +160,17 @@ class TransactionHelper
     }
 
     /**
-     * @param string $reference
+     * @param ?string $reference
      * @param string $type
      *
      * @return Transaction
      */
-    public function getTransaction(string $reference, string $type): Transaction
+    public function getTransaction(?string $reference, string $type): ?Transaction
     {
-
+        if($reference === null) {
+            $this->log(__CLASS__, __METHOD__, 'invalid', 'getTransaction() for empty reference', ['reference' => $reference]);
+            return null;
+        }
         if ($transactions = $this->transactionRepository->getTransactions([['reference', '=', $reference], ['type', '=', $type]])) {
             return $transactions[0];
         } else {
@@ -183,8 +190,12 @@ class TransactionHelper
      *
      * @return Transaction
      */
-    protected function getChargeTransaction($charge): Transaction
+    protected function getChargeTransaction($charge): ?Transaction
     {
+        if(!$charge || !$charge->chargeId){
+            $this->log(__CLASS__, __METHOD__, 'invalid', 'getChargeTransaction() for invalid charge', ['charge' => $charge]);
+            return null;
+        }
         $transaction = $this->getTransaction($charge->chargeId, Transaction::TRANSACTION_TYPE_CHARGE);
         $transaction->amount = $charge->chargeAmount->amount;
         $transaction->currency = $charge->chargeAmount->currencyCode;

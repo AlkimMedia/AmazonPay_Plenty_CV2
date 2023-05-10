@@ -9,6 +9,7 @@
         merchantId: '{{ config('AmazonPayCheckout.merchantId') }}',
         createCheckoutSessionUrl: '{{ urls.createCheckoutSession }}',
         ledgerCurrency: {% if  config('AmazonPayCheckout.accountCountry') == 'DE' %}'EUR'{% else %}'GBP'{% endif %},
+        estimatedOrderAmount: {{ estimatedOrderAmount|json_encode()|raw }},
         publicKeyId: '{{ config('AmazonPayCheckout.publicKeyId') }}',
         isSandbox:{% if config('AmazonPayCheckout.sandbox') == 'true' %}true{% else %}false{% endif %},
         language: '{{ language }}',

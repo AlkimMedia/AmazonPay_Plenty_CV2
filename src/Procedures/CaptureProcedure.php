@@ -69,8 +69,10 @@ class CaptureProcedure
             $this->log(__CLASS__, __METHOD__, 'before_capture', '', [$authorizedCharge, $order->amount]);
             $amountToCapture = min($authorizedCharge->amount, $order->amount->invoiceTotal);
             $capturedCharge = $apiHelper->capture($authorizedCharge->reference, $amountToCapture);
-            $transactionHelper->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);
-            $transactionHelper->updateCharge($capturedCharge); //to trigger additional actions
+            if ($capturedCharge) {
+                $transactionHelper->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);
+                $transactionHelper->updateCharge($capturedCharge); //to trigger additional actions
+            }
         }
 
     }

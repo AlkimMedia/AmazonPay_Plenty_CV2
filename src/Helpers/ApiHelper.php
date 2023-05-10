@@ -222,6 +222,11 @@ class ApiHelper
         return $response->response->buyer;
     }
 
+    /**
+     * @param string $chargeId
+     * @param $amount
+     * @return null|Charge
+     */
     public function capture(string $chargeId, $amount = null)
     {
         $this->log(__CLASS__, __METHOD__, 'start', '', ['chargeId' => $chargeId, 'amount' => $amount]);
@@ -242,6 +247,12 @@ class ApiHelper
         return null;
     }
 
+    /**
+     * @param string $chargeId
+     * @param $amount
+     * @param $orderId
+     * @return null|Refund
+     */
     public function refund(string $chargeId, $amount = null, $orderId = null)
     {
         $this->log(__CLASS__, __METHOD__, 'start', '', ['chargeId' => $chargeId, 'amount' => $amount]);

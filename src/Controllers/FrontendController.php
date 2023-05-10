@@ -255,9 +255,9 @@ class FrontendController extends Controller
     {
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
-
+        $checkoutDetails = $checkoutHelper->getCheckoutSessionDataForDirectCheckout($existingOrder);
         try {
-            $createCheckoutSessionPayload = stripslashes(json_encode($checkoutHelper->getCheckoutSessionDataForDirectCheckout($existingOrder), JSON_UNESCAPED_UNICODE));
+            $createCheckoutSessionPayload = stripslashes(json_encode($checkoutDetails, JSON_UNESCAPED_UNICODE));
         } catch (Exception $e) {
             $this->log(__CLASS__, __METHOD__, 'failed', '', [$e->getMessage(), $e->getTraceAsString()]);
             $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.pleaseSelectAnotherPaymentMethod'));
@@ -265,6 +265,7 @@ class FrontendController extends Controller
         }
         return $this->twig->render('AmazonPayCheckout::content.additional_payment_button', [
             'createCheckoutSessionPayload' => $createCheckoutSessionPayload,
+            'estimatedOrderAmount'=> ['amount'=>(string)$checkoutDetails['paymentDetails']['chargeAmount']['amount'], 'currencyCode'=>$checkoutDetails['paymentDetails']['chargeAmount']['currencyCode']],
             'language' => $configHelper->getLocale(),
             'createCheckoutSessionSignature' => $apiHelper->generateButtonSignature($createCheckoutSessionPayload),
         ]);

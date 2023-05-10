@@ -92,6 +92,7 @@ var PlentyAmazonPay = {
                         },
                         sandbox: AmazonPayConfiguration.isSandbox,
                         ledgerCurrency: AmazonPayConfiguration.ledgerCurrency,
+                        estimatedOrderAmount: {amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''},
                         checkoutLanguage: AmazonPayConfiguration.language,
                         productType: 'PayAndShip', //TODO
                         placement: 'Cart', //TODO
@@ -145,6 +146,7 @@ var PlentyAmazonPay = {
                 merchantId: AmazonPayConfiguration.merchantId,
                 sandbox: AmazonPayConfiguration.isSandbox,
                 ledgerCurrency: AmazonPayConfiguration.ledgerCurrency,
+                estimatedOrderAmount: {amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''},
                 checkoutLanguage: AmazonPayConfiguration.language,
                 productType: 'PayAndShip', //TODO
                 placement: 'Checkout'
@@ -171,6 +173,7 @@ var PlentyAmazonPay = {
                         merchantId: AmazonPayConfiguration.merchantId,
                         sandbox: AmazonPayConfiguration.isSandbox,
                         ledgerCurrency: AmazonPayConfiguration.ledgerCurrency,
+                        estimatedOrderAmount: {amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''},
                         checkoutLanguage: AmazonPayConfiguration.language,
                         productType: 'PayAndShip',
                         placement: 'Product',
