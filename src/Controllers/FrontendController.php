@@ -184,7 +184,9 @@ class FrontendController extends Controller
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
         $this->log(__CLASS__, __METHOD__, 'info', '', [$checkoutSession]);
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
-            return $this->response->redirectTo('place-order'); //TODO language?
+            /** @var ConfigHelper $configHelper */
+            $configHelper = pluginApp(ConfigHelper::class);
+            return $this->response->redirectTo($configHelper->getAbsoluteUrl('place-order'));
         } else {
             /** @var CheckoutHelper $checkoutHelper */
             $checkoutHelper = pluginApp(CheckoutHelper::class);
