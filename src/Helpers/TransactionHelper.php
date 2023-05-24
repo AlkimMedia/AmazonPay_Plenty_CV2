@@ -57,6 +57,9 @@ class TransactionHelper
                 $apiHelper = pluginApp(ApiHelper::class);
                 $capturedCharge = $apiHelper->capture($charge->chargeId);
                 $this->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);
+                if($capturedCharge && $capturedCharge->statusDetails->state !== StatusDetails::AUTHORIZED){
+                    $this->updateCharge($capturedCharge, $orderId);
+                }
             }
         }
 
