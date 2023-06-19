@@ -146,7 +146,7 @@ var PlentyAmazonPay = {
                 merchantId: AmazonPayConfiguration.merchantId,
                 sandbox: AmazonPayConfiguration.isSandbox,
                 ledgerCurrency: AmazonPayConfiguration.ledgerCurrency,
-                estimatedOrderAmount: {amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''},
+                estimatedOrderAmount: window.ceresStore?{amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''}:null,
                 checkoutLanguage: AmazonPayConfiguration.language,
                 productType: 'PayAndShip', //TODO
                 placement: 'Checkout'

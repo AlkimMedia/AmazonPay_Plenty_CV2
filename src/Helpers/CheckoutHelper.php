@@ -327,6 +327,7 @@ class CheckoutHelper
                 'checkoutCancelUrl' => $configHelper->getShopCheckoutUrl(),
                 'checkoutMode' => 'ProcessOrder',
             ],
+            'platformId'=>$configHelper->getPlatformId(),
             'storeId' => $configHelper->getConfigurationValue('storeId'),
             'scopes' => ['name', 'email', 'phoneNumber', 'billingAddress'],
             'paymentDetails' => [
@@ -339,6 +340,7 @@ class CheckoutHelper
             ],
             'merchantMetadata' => [
                 'merchantStoreName' => $configHelper->getStoreName(),
+                'customInformation' => $configHelper->getCustomInformationString()
             ],
             'addressDetails' => [
                 'name' => trim($shippingAddress->name1 . ' ' . $shippingAddress->name2 . ' ' . $shippingAddress->name3),
