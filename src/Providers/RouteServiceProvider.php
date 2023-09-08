@@ -22,7 +22,7 @@ class RouteServiceProvider extends RouteServiceProviderBase
 
         //This is for debugging only:
         $router->get('payment/amazon-pay-get-table', 'AmazonPayCheckout\Controllers\AjaxController@getTable');
-        //$router->get('payment/amazon-pay-external-order-matching', 'AmazonPayCheckout\Controllers\AjaxController@externalOrderMatching'); //TODO
-        $router->get('payment/amazon-pay-key-upgrade', 'AmazonPayCheckout\Controllers\AjaxController@keyUpgrade');
+        $router->get('payment/amazon-pay-external-order-matching', 'AmazonPayCheckout\Controllers\AjaxController@externalOrderMatching');
+        //$router->get('payment/amazon-pay-key-upgrade', 'AmazonPayCheckout\Controllers\AjaxController@keyUpgrade'); //TODO
     }
 }
