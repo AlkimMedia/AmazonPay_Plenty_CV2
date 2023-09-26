@@ -137,7 +137,7 @@ class ExternalOrderHelper
         $chargePermissionCandidates = array_values(
             array_filter($chargePermissionCandidates, function (Transaction $chargePermission) use ($orderEmailAddresses) {
                 $chargePermissionFromApi = $this->apiHelper->getChargePermission($chargePermission->reference);
-                return in_array($chargePermissionFromApi->buyer->email, $orderEmailAddresses);
+                return in_array(strtolower($chargePermissionFromApi->buyer->email), $orderEmailAddresses);
             })
         );
         $this->log(__CLASS__, __METHOD__, 'finalCandidates', '', [$chargePermissionCandidates]);
@@ -157,7 +157,7 @@ class ExternalOrderHelper
         foreach ($order['addresses'] as $address) {
             foreach ($address['options'] as $option) {
                 if ((int)$option['typeId'] === (int)AddressOption::TYPE_EMAIL) {
-                    $emailAddresses[] = $option['value'];
+                    $emailAddresses[] = strtolower($option['value']);
                 }
             }
         }
