@@ -29,7 +29,7 @@ class ExternalOrderHelper
         $this->apiHelper = pluginApp(ApiHelper::class);
     }
 
-    public function process($maxTimeBack = 864000, $maxStatusId = 5)
+    public function process($maxTimeBack = 86400, $maxStatusId = 5)
     {
 
         /** @var AuthHelper $authHelper */
@@ -62,7 +62,6 @@ class ExternalOrderHelper
                             break;
                         }
                     }
-                    $this->log(__CLASS__, 'process', 'order', '', ['orderPaymentMethodId' => $orderPaymentMethodId, 'paymentMethodId' => $paymentMethodId, 'order' => $order]);
                     if ($orderPaymentMethodId === $paymentMethodId) {
                         $this->processOrder($order);
                     }
