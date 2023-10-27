@@ -205,7 +205,7 @@ class TransactionHelper
      * @param int $tolerance
      * @return Transaction[]
      */
-    public function getChargePermissionsByAmountAndTime(float $amount, string $time, int $tolerance = 86400): array
+    public function getChargePermissionsByAmountAndTime(float $amount, string $time, int $tolerance = 43200): array
     {
         $timeFrom = str_replace('_', 'T', date('Ymd_His', strtotime($time) - $tolerance));
         $timeTo = str_replace('_', 'T', date('Ymd_His', strtotime($time) + $tolerance));

@@ -4,8 +4,10 @@ namespace AmazonPayCheckout\Helpers;
 
 
 use AmazonPayCheckout\Models\Transaction;
+use AmazonPayCheckout\Struct\ChargePermission;
 use AmazonPayCheckout\Traits\LoggingTrait;
 use Plenty\Modules\Account\Address\Models\AddressOption;
+use Plenty\Modules\Account\Address\Models\AddressRelationType;
 use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
 use Plenty\Modules\Order\Models\Order;
@@ -60,7 +62,6 @@ class ExternalOrderHelper
                             break;
                         }
                     }
-                    $this->log(__CLASS__, 'process', 'order', '', ['orderPaymentMethodId' => $orderPaymentMethodId, 'paymentMethodId' => $paymentMethodId, 'order' => $order]);
                     if ($orderPaymentMethodId === $paymentMethodId) {
                         $this->processOrder($order);
                     }
@@ -135,17 +136,80 @@ class ExternalOrderHelper
         $orderEmailAddresses = $this->getEmailAddressesFromOrder($order);
         $this->log(__CLASS__, __METHOD__, 'hotCandidates', '', ['candidates' => $chargePermissionCandidates, 'orderEmailAddresses' => $orderEmailAddresses]);
         $chargePermissionCandidates = array_values(
-            array_filter($chargePermissionCandidates, function (Transaction $chargePermission) use ($orderEmailAddresses) {
+            array_filter($chargePermissionCandidates, function (Transaction $chargePermission) use ($orderEmailAddresses, $order) {
                 $chargePermissionFromApi = $this->apiHelper->getChargePermission($chargePermission->reference);
-                return in_array(strtolower($chargePermissionFromApi->buyer->email), $orderEmailAddresses);
+                return in_array(strtolower($chargePermissionFromApi->buyer->email), $orderEmailAddresses) || $this->doAddressesMatch($order, $chargePermissionFromApi);
             })
         );
-        $this->log(__CLASS__, __METHOD__, 'finalCandidates', '', [$chargePermissionCandidates]);
+        $this->log(__CLASS__, __METHOD__, 'finalCandidatesByEmail', '', [$chargePermissionCandidates]);
         if (count($chargePermissionCandidates) !== 1) {
             $this->log(__CLASS__, __METHOD__, 'failed', '', ['candidates' => $chargePermissionCandidates, 'order' => $order]);
             return null;
         }
         return $chargePermissionCandidates[0]->reference;
+    }
+
+    /**
+     * @param Order $order
+     * @param ChargePermission $chargePermission
+     * @return bool
+     */
+    protected function doAddressesMatch($order, $chargePermission): bool
+    {
+        $chargePermissionAddress = $chargePermission->shippingAddress;
+        $chargePermissionAddressString = $chargePermissionAddress->name . ' ' . $chargePermissionAddress->city . ' ' . $chargePermissionAddress->postalCode;
+        $orderAddress = $this->getShippingAddressArray($order);
+
+        $orderAddressString = $orderAddress['name2'] . ' ' . $orderAddress['name3'].' '.$orderAddress['town'] . ' ' . $orderAddress['postalCode'];
+
+        $regex = '/[^a-z0-9 ]/i';
+        $chargePermissionAddressString = preg_replace($regex, '', $chargePermissionAddressString);
+        $orderAddressString = preg_replace($regex, '', $orderAddressString);
+
+        $chargePermissionAddressParts = explode(' ', $chargePermissionAddressString);
+        $orderAddressParts = explode(' ', $orderAddressString);
+
+        $diff1 = array_diff($chargePermissionAddressParts, $orderAddressParts);
+        $diff2 = array_diff($orderAddressParts, $chargePermissionAddressParts);
+
+        $differenceNumber = count($diff1) + count($diff2) ;
+        $originalNumber = count($chargePermissionAddressParts) + count($orderAddressParts);
+        $differencePercentage = $differenceNumber / $originalNumber;
+        $this->log(__CLASS__, __METHOD__, 'addressMatch', '', [
+            'chargePermissionAddress' => $chargePermissionAddress,
+            'orderAddress' => $orderAddress,
+            'chargePermissionAddressString' => $chargePermissionAddressString,
+            'orderAddressString' => $orderAddressString,
+            'diff1' => $diff1,
+            'diff2' => $diff2,
+            'differenceNumber' => $differenceNumber,
+            'originalNumber' => $originalNumber,
+            'differencePercentage' => $differencePercentage,
+        ]);
+        return $differencePercentage <= 0.25;
+    }
+
+    protected function getShippingAddressArray($order): ?array
+    {
+        $shippingAddress = null;
+        foreach ($order['addressRelations'] as $addressRelation) {
+            if ($addressRelation['typeId'] == AddressRelationType::DELIVERY_ADDRESS) {
+                $shippingAddressId = (int)$addressRelation['addressId'];
+                break;
+            }
+        }
+
+        if (empty($shippingAddressId)) {
+            return null;
+        }
+
+        foreach ($order['addresses'] as $address) {
+            if ((int)$address['id'] === $shippingAddressId) {
+                $shippingAddress = $address;
+                break;
+            }
+        }
+        return $shippingAddress;
     }
 
     protected function getEmailAddressesFromOrder($order): array
