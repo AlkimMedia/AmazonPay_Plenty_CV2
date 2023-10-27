@@ -223,14 +223,19 @@ class ConfigHelper
         /** @var PluginSetRepositoryContract $pluginSetRepo */
         $pluginSetRepo = pluginApp(PluginSetRepositoryContract::class);
         $pluginSets = $pluginSetRepo->list();
-        $this->log(__CLASS__, __METHOD__, 'start', 'start key upgrade attempt', ['pluginSets'=>$pluginSets]);
+
+        $currentPluginSetId = $pluginSetRepo->getCurrentPluginSetId();
+
         /** @var AuthHelper $authHelper */
         $authHelper = pluginApp(AuthHelper::class);
 
         $authHelper->processUnguarded(
-            function () use ($pluginSets) {
+            function () use ($pluginSets, $currentPluginSetId) {
                 if (count($pluginSets)) {
                     foreach ($pluginSets as $pluginSet) {
+                        if ($pluginSet->id != $currentPluginSetId) {
+                            continue;
+                        }
                         $oldPlugin = $this->getDecoratedPlugin('AmazonLoginAndPay', $pluginSet->id);
                         $newPlugin = $this->getDecoratedPlugin('AmazonPayCheckout', $pluginSet->id);
                         if (!$oldPlugin || !$newPlugin) {
@@ -244,15 +249,23 @@ class ConfigHelper
                         $newPluginConfig = (array)$configRepo->export($pluginSet->id, $newPlugin->id);
                         $newPluginConfig = $newPluginConfig['AmazonPayCheckout'];
 
-                        if($newPluginConfig === null){
-                            continue;
-                        }
+//                        if ($newPluginConfig === null) {
+//                            continue;
+//                        }
 
-                        if ($newPluginConfig && $newPluginConfig['privateKey'] && $newPluginConfig['publicKeyId']) {
+                        if ($newPluginConfig && ($newPluginConfig['privateKey'] || (!empty($newPluginConfig['publicKeyId']) && strlen((string)$newPluginConfig['publicKeyId']) > 1))) {
                             continue;
                         }
 
                         if (empty($oldPluginConfig['merchantId']) || empty($oldPluginConfig['mwsAccessKey']) || empty($oldPluginConfig['mwsSecretAccessKey'])) {
+                            continue;
+                        }
+
+                        if(!empty($newPluginConfig['merchantId']) && $newPluginConfig['merchantId'] !== $oldPluginConfig['merchantId']){
+                            continue;
+                        }
+
+                        if (!empty($newPluginConfig['keyUpgradeAttempts']) && $newPluginConfig['keyUpgradeAttempts'] >= 100000) {
                             continue;
                         }
 
@@ -278,14 +291,31 @@ class ConfigHelper
                             $requestData
                         );
 
-                        if ($result['error']) {
-                            $this->log(__CLASS__, __METHOD__, 'error', $result['error'], [$result], true);
+                        if ($result['error'] || empty($result['privateKey']) || empty($result['publicKeyId'])) {
+                            $this->log(__CLASS__, __METHOD__, 'error', $result['error'] ?? '', [$result], true);
+                            $attempts = !empty($newPluginConfig['publicKeyId'])? (int)$newPluginConfig['publicKeyId'] : 0;
+                            $attempts++;
+                            $saveResult = $configRepo->saveConfiguration(
+                                $newPlugin->id,
+                                [
+                                    [
+                                        'key' => 'publicKeyId',
+                                        'value' => $attempts,
+                                    ],
+                                ],
+                                $pluginSet->id,
+                            );
+                            $this->log(__CLASS__, __METHOD__, 'errorSaveResult', '', [$saveResult]);
                         } else {
-                            $this->log(__CLASS__, __METHOD__, 'success', '', $result, true);
+                            $this->log(__CLASS__, __METHOD__, 'success', '', $result);
                             $configData = [
                                 [
                                     'key' => 'merchantId',
                                     'value' => $oldPluginConfig['merchantId'],
+                                ],
+                                [
+                                    'key' => 'storeId',
+                                    'value' => $oldPluginConfig['loginClientId'],
                                 ],
                                 [
                                     'key' => 'privateKey',
@@ -303,7 +333,7 @@ class ConfigHelper
                                 $configData,
                                 $pluginSet->id,
                             );
-                            $this->log(__CLASS__, __METHOD__, 'saveResult', '', [$saveResult]);
+                            $this->log(__CLASS__, __METHOD__, 'saveResult', '', [$saveResult, $configData]);
 
                         }
                     }

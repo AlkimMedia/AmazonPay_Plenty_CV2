@@ -1,6 +1,7 @@
 <?php
+namespace AmazonPayCheckout\CronHandlers;
 
-use AmazonLoginAndPay\Models\AmzTransaction;
+use AmazonPayCheckout\Helpers\ExternalOrderHelper;
 use AmazonPayCheckout\Traits\LoggingTrait;
 
 class ExternalOrderMatcherCronHandler extends \Plenty\Modules\Cron\Contracts\CronHandler
@@ -11,8 +12,7 @@ class ExternalOrderMatcherCronHandler extends \Plenty\Modules\Cron\Contracts\Cro
     public function handle()
     {
         $this->log(__CLASS__, __METHOD__, 'cron_started', '', []);
-
-
+        pluginApp(ExternalOrderHelper::class)->process();
 
     }
 

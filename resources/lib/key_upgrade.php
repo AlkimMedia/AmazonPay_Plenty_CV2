@@ -26,6 +26,13 @@ try {
         'error' => $e->getMessage(),
         'code' => $e->getCode(),
         'trace' => $e->getTraceAsString(),
+        'data' => [
+            $merchantId,
+            $accessKeyId,
+            $secretKey,
+            $publicKey,
+            'https://' . KeyUpgradeClient::API_DOMAIN . KeyUpgradeClient::API_PATH
+        ]
     ];
 }
 

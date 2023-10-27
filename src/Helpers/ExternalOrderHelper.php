@@ -141,7 +141,7 @@ class ExternalOrderHelper
                 return in_array(strtolower($chargePermissionFromApi->buyer->email), $orderEmailAddresses) || $this->doAddressesMatch($order, $chargePermissionFromApi);
             })
         );
-        $this->log(__CLASS__, __METHOD__, 'finalCandidatesByEmail', '', [$chargePermissionCandidates]);
+        $this->log(__CLASS__, __METHOD__, 'finalCandidates', '', [$chargePermissionCandidates]);
         if (count($chargePermissionCandidates) !== 1) {
             $this->log(__CLASS__, __METHOD__, 'failed', '', ['candidates' => $chargePermissionCandidates, 'order' => $order]);
             return null;

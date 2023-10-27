@@ -82,6 +82,7 @@ HTML;
 
     public function keyUpgrade(Twig $twig)
     {
+        $this->log(__CLASS__, __METHOD__, 'start', 'start key upgrade attempt from route');
         /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
         $configHelper->upgradeKeys();

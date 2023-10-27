@@ -3,6 +3,7 @@
 namespace AmazonPayCheckout\Providers;
 
 use AmazonPayCheckout\Contracts\TransactionRepositoryContract;
+use AmazonPayCheckout\CronHandlers\ExternalOrderMatcherCronHandler;
 use AmazonPayCheckout\Helpers\CheckoutHelper;
 use AmazonPayCheckout\Helpers\ConfigHelper;
 use AmazonPayCheckout\Helpers\OrderHelper;
@@ -216,14 +217,15 @@ class ServiceProvider extends ServiceProviderParent
         /** @var WizardContainerContract $wizardContainerContract */
         $wizardContainerContract = pluginApp(WizardContainerContract::class);
         $wizardContainerContract->register('amazonPayWizard', MainWizard::class);
+
+        /** @var ConfigHelper $configHelper */
+        $configHelper = pluginApp(ConfigHelper::class);
+        $configHelper->upgradeKeys();
     }
 
     protected function registerCronjobs(CronContainer $cronContainer)
     {
-        /** @var ConfigHelper $configHelper */
-        $configHelper = pluginApp(ConfigHelper::class);
-        //TODO run by config
-        $cronContainer->add(CronContainer::EVERY_FIVE_MINUTES, \ExternalOrderMatcherCronHandler::class);
+        $cronContainer->add(CronContainer::EVERY_FIFTEEN_MINUTES, ExternalOrderMatcherCronHandler::class);
     }
 
     /**

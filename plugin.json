@@ -14,7 +14,7 @@
   "categories": [
     "3519"
   ],
-  "version": "1.0.3-stable-b",
+  "version": "1.1.0",
   "license": "AGPL-3.0",
   "pluginIcon": "icon_plugin_xs.png",
   "price": 0.0,
@@ -32,9 +32,21 @@
   "dataProviders": [
     {
       "key": "AmazonPayCheckout\\Providers\\DataProviderCheckoutButton",
-      "name": "Amazon Pay Checkout - Button",
-      "description": "Amazon Pay Checkout - Button",
+      "name": "Amazon Pay Checkout - Button Cart",
+      "description": "Amazon Pay Checkout - Button Cart",
       "defaultLayoutContainer": "Ceres::Basket.AfterCheckoutButton"
+    },
+    {
+      "key": "AmazonPayCheckout\\Providers\\DataProviderCheckoutButtonCopy1",
+      "name": "Amazon Pay Checkout - Button Cart Overlay",
+      "description": "Amazon Pay Checkout - Button Cart Overlay",
+      "defaultLayoutContainer": "Ceres::Basket.ExtendOverlayButtons"
+    },
+    {
+      "key": "AmazonPayCheckout\\Providers\\DataProviderCheckoutButtonCopy2",
+      "name": "Amazon Pay Checkout - Button Cart Preview",
+      "description": "Amazon Pay Checkout - Button Cart Preview",
+      "defaultLayoutContainer": "Ceres::BasketPreview.AfterCheckoutButton"
     },
     {
       "key": "AmazonPayCheckout\\Providers\\DataProviderArticleCheckoutButton",
@@ -60,7 +72,7 @@
     "php": ">=7.3 <8.1"
   },
   "dependencies": {
-    "mkreusch/amazon-pay-api-sdk-php-extension": "0.5.3",
+    "mkreusch/amazon-pay-api-sdk-php-extension": "0.6.0",
     "aws/aws-php-sns-message-validator": "^1.6"
   },
   "runOnBuild": [

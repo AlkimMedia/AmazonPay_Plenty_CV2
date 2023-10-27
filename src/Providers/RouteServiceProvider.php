@@ -21,8 +21,8 @@ class RouteServiceProvider extends RouteServiceProviderBase
         $router->post('payment/amazon-pay-ipn', 'AmazonPayCheckout\Controllers\IpnController@index');
 
         //This is for debugging only:
-        $router->get('payment/amazon-pay-get-table', 'AmazonPayCheckout\Controllers\AjaxController@getTable');
+        //$router->get('payment/amazon-pay-get-table', 'AmazonPayCheckout\Controllers\AjaxController@getTable'); //TODO: remove this
         $router->get('payment/amazon-pay-external-order-matching', 'AmazonPayCheckout\Controllers\AjaxController@externalOrderMatching');
-        //$router->get('payment/amazon-pay-key-upgrade', 'AmazonPayCheckout\Controllers\AjaxController@keyUpgrade'); //TODO
+        //$router->get('payment/amazon-pay-key-upgrade', 'AmazonPayCheckout\Controllers\AjaxController@keyUpgrade');
     }
 }
