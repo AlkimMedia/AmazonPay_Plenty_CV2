@@ -12,8 +12,11 @@ use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
 use Exception;
 use IO\Extensions\Constants\ShopUrls;
+use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Frontend\Contracts\Checkout;
 use Plenty\Modules\Frontend\PaymentMethod\Contracts\FrontendPaymentMethodRepositoryContract;
+use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
+use Plenty\Modules\Order\Models\Order;
 use Plenty\Modules\Webshop\Contracts\SessionStorageRepositoryContract;
 use Plenty\Plugin\Controller;
 use Plenty\Plugin\Http\Request;
@@ -166,7 +169,7 @@ class FrontendController extends Controller
             $checkoutHelper = pluginApp(CheckoutHelper::class);
             $checkoutHelper->executePayment($order, $checkoutSessionId);
         }
-        return $this->response->redirectTo($this->getShopAccountUrl());
+        return $this->response->redirectTo($this->getOrderConfirmationUrl($order));
     }
 
 
@@ -267,7 +270,7 @@ class FrontendController extends Controller
         }
         return $this->twig->render('AmazonPayCheckout::content.additional_payment_button', [
             'createCheckoutSessionPayload' => $createCheckoutSessionPayload,
-            'estimatedOrderAmount'=> ['amount'=>(string)$checkoutDetails['paymentDetails']['chargeAmount']['amount'], 'currencyCode'=>$checkoutDetails['paymentDetails']['chargeAmount']['currencyCode']],
+            'estimatedOrderAmount' => ['amount' => (string)$checkoutDetails['paymentDetails']['chargeAmount']['amount'], 'currencyCode' => $checkoutDetails['paymentDetails']['chargeAmount']['currencyCode']],
             'language' => $configHelper->getLocale(),
             'createCheckoutSessionSignature' => $apiHelper->generateButtonSignature($createCheckoutSessionPayload),
         ]);
@@ -285,6 +288,27 @@ class FrontendController extends Controller
         /** @var ShopUrls $shopUrls */
         $shopUrls = pluginApp(ShopUrls::class);
         return $shopUrls->myAccount;
+    }
+
+    private function getOrderConfirmationUrl(Order $order)
+    {
+        /** @var ShopUrls $shopUrls */
+        $shopUrls = pluginApp(ShopUrls::class);
+        $url = $shopUrls->orderConfirmation($order->id);
+
+        /** @var OrderRepositoryContract $orderRepo */
+        $orderRepo = pluginApp(OrderRepositoryContract::class);
+        /** @var AuthHelper $authHelper */
+        $authHelper = pluginApp(AuthHelper::class);
+
+        $orderAccessKey = $authHelper->processUnguarded(
+            function () use ($order, $orderRepo) {
+                return $orderRepo->generateAccessKey($order->id);
+            }
+        );
+        $url .= (str_contains($url, '?') ? '&' : '/') . $orderAccessKey;
+        $url = str_replace('//', '/', $url);
+        return $url;
     }
 
     private function getShopBasketUrl()

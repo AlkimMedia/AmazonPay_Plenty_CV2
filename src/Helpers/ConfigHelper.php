@@ -2,17 +2,25 @@
 
 namespace AmazonPayCheckout\Helpers;
 
+use AmazonPayCheckout\Traits\LoggingTrait;
 use IO\Extensions\Constants\ShopUrls;
 use IO\Services\SessionStorageService;
 use IO\Services\UrlBuilder\UrlQuery;
 use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Helper\Services\WebstoreHelper;
+use Plenty\Modules\Plugin\Contracts\ConfigurationRepositoryContract;
 use Plenty\Modules\Plugin\Contracts\PluginRepositoryContract;
+use Plenty\Modules\Plugin\Libs\Contracts\LibraryCallContract;
+use Plenty\Modules\Plugin\Models\Plugin;
+use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Modules\Webshop\Contracts\LocalizationRepositoryContract;
 use Plenty\Plugin\ConfigRepository;
 
 class ConfigHelper
 {
+    use LoggingTrait;
+
     const AVAILABLE_LOCALES = ['en_GB', 'de_DE', 'fr_FR', 'it_IT', 'es_ES'];
     const CUSTOM_INFORMATION_STRING = 'Created by Alkim Media, plentymarkets, v';
 
@@ -42,6 +50,9 @@ class ConfigHelper
             'private_key' => $this->getConfigurationValue('privateKey'),
             'region' => $this->getConfigurationValue('accountCountry'),
             'sandbox' => $this->getConfigurationValue('sandbox') === 'true',
+            'integrator_id' => $this->getPlatformId(),
+            'integrator_version' => $this->getPluginVersion(),
+            'platform_version' => $this->getShopVersion(),
         ];
     }
 
@@ -62,7 +73,8 @@ class ConfigHelper
         return $this->configRepository->get('AmazonPayCheckout.' . $key);
     }
 
-    public function getAuthorizedStatus(){
+    public function getAuthorizedStatus()
+    {
         return $this->getConfigurationValue('authorizedStatus');
     }
 
@@ -112,11 +124,12 @@ class ConfigHelper
         return $this->getAbsoluteUrl('payment/amazon-pay-checkout-start');
     }
 
-    public function getShopCheckoutUrl():string
+    public function getShopCheckoutUrl(): string
     {
         return $this->getAbsoluteUrl($this->getShopCheckoutUrlRelative());
     }
-    public function getShopCheckoutUrlRelative():string
+
+    public function getShopCheckoutUrlRelative(): string
     {
         /** @var ShopUrls $shopUrls */
         $shopUrls = pluginApp(ShopUrls::class);
@@ -128,13 +141,13 @@ class ConfigHelper
         /** @var LocalizationRepositoryContract $localizationRepository */
         $localizationRepository = pluginApp(LocalizationRepositoryContract::class);
         $locale = $localizationRepository->getLocale();
-        if(in_array($locale, self::AVAILABLE_LOCALES)){
+        if (in_array($locale, self::AVAILABLE_LOCALES)) {
             return $locale;
         }
 
         $language = strtolower(substr($locale, 2));
-        foreach(self::AVAILABLE_LOCALES as $availableLocale){
-            if(strpos($availableLocale, $language) === 0){
+        foreach (self::AVAILABLE_LOCALES as $availableLocale) {
+            if (strpos($availableLocale, $language) === 0) {
                 return $availableLocale;
             }
         }
@@ -155,15 +168,45 @@ class ConfigHelper
 
     public function getCustomInformationString(): string
     {
-        return static::CUSTOM_INFORMATION_STRING.$this->getPluginVersion();
+        return static::CUSTOM_INFORMATION_STRING . $this->getPluginVersion();
     }
 
-    public function getPluginVersion(){
+    public function getPluginVersion()
+    {
+        $plugin = $this->getDecoratedPlugin('AmazonPayCheckout');
+        $version = $plugin->version;
+        if (preg_match('/^(\d+\.\d+\.\d)/', $version, $match)) {
+            return $match[1];
+        }
+        return null;
+    }
+
+    public function getShopVersion()
+    {
+        $plugin = $this->getDecoratedPlugin('Ceres');
+        $version = $plugin->version;
+        if (preg_match('/^(\d+\.\d+\.\d)/', $version, $match)) {
+            return $match[1];
+        }
+        return null;
+    }
+
+    /**
+     * @param $pluginName
+     * @param $pluginSetId
+     * @return Plugin|null
+     */
+    public function getDecoratedPlugin($pluginName, $pluginSetId = null)
+    {
+
         /** @var PluginRepositoryContract $pluginRepo */
         $pluginRepo = pluginApp(PluginRepositoryContract::class);
-        $plugin = $pluginRepo->getPluginByName("AmazonPayCheckout");
-        $plugin = $pluginRepo->decoratePlugin($plugin);
-        return $plugin->version;
+        $plugin = $pluginRepo->getPluginByName($pluginName);
+        if ($plugin && $plugin->name) {
+            $plugin = $pluginRepo->decoratePlugin($plugin, $pluginSetId);
+            return $plugin;
+        }
+        return null;
     }
 
     public function getStoreName(): string
@@ -174,4 +217,130 @@ class ConfigHelper
         $storeName = $storeConfig->name;
         return (strlen($storeName) > 50 ? substr($storeName, 0, 46) . ' ...' : $storeName);
     }
+
+    public function upgradeKeys()
+    {
+        /** @var PluginSetRepositoryContract $pluginSetRepo */
+        $pluginSetRepo = pluginApp(PluginSetRepositoryContract::class);
+        $pluginSets = $pluginSetRepo->list();
+
+        $currentPluginSetId = $pluginSetRepo->getCurrentPluginSetId();
+
+        /** @var AuthHelper $authHelper */
+        $authHelper = pluginApp(AuthHelper::class);
+
+        $authHelper->processUnguarded(
+            function () use ($pluginSets, $currentPluginSetId) {
+                if (count($pluginSets)) {
+                    foreach ($pluginSets as $pluginSet) {
+                        if ($pluginSet->id != $currentPluginSetId) {
+                            continue;
+                        }
+                        $oldPlugin = $this->getDecoratedPlugin('AmazonLoginAndPay', $pluginSet->id);
+                        $newPlugin = $this->getDecoratedPlugin('AmazonPayCheckout', $pluginSet->id);
+                        if (!$oldPlugin || !$newPlugin) {
+                            continue;
+                        }
+
+                        /** @var ConfigurationRepositoryContract $configRepo */
+                        $configRepo = pluginApp(ConfigurationRepositoryContract::class);
+                        $oldPluginConfig = (array)$configRepo->export($pluginSet->id, $oldPlugin->id);
+                        $oldPluginConfig = $oldPluginConfig['AmazonLoginAndPay'];
+                        $newPluginConfig = (array)$configRepo->export($pluginSet->id, $newPlugin->id);
+                        $newPluginConfig = $newPluginConfig['AmazonPayCheckout'];
+
+//                        if ($newPluginConfig === null) {
+//                            continue;
+//                        }
+
+                        if ($newPluginConfig && ($newPluginConfig['privateKey'] || (!empty($newPluginConfig['publicKeyId']) && strlen((string)$newPluginConfig['publicKeyId']) > 1))) {
+                            continue;
+                        }
+
+                        if (empty($oldPluginConfig['merchantId']) || empty($oldPluginConfig['mwsAccessKey']) || empty($oldPluginConfig['mwsSecretAccessKey'])) {
+                            continue;
+                        }
+
+                        if(!empty($newPluginConfig['merchantId']) && $newPluginConfig['merchantId'] !== $oldPluginConfig['merchantId']){
+                            continue;
+                        }
+
+                        if (!empty($newPluginConfig['keyUpgradeAttempts']) && $newPluginConfig['keyUpgradeAttempts'] >= 100000) {
+                            continue;
+                        }
+
+
+                        /** @var LibraryCallContract $libCaller */
+                        $libCaller = pluginApp(LibraryCallContract::class);
+
+                        $requestData = [
+                            'merchantId' => $oldPluginConfig['merchantId'],
+                            'accessKeyId' => $oldPluginConfig['mwsAccessKey'],
+                            'secretKey' => $oldPluginConfig['mwsSecretAccessKey'],
+                        ];
+
+                        $this->log(__CLASS__, __METHOD__, 'request', '', [
+                            'requestData' => $requestData,
+                            'oldPluginConfig' => $oldPluginConfig,
+                            'newPluginConfig' => $newPluginConfig,
+                            'pluginSet' => $pluginSet,
+                        ]);
+
+                        $result = $libCaller->call(
+                            'AmazonPayCheckout::key_upgrade',
+                            $requestData
+                        );
+
+                        if ($result['error'] || empty($result['privateKey']) || empty($result['publicKeyId'])) {
+                            $this->log(__CLASS__, __METHOD__, 'error', $result['error'] ?? '', [$result], true);
+                            $attempts = !empty($newPluginConfig['publicKeyId'])? (int)$newPluginConfig['publicKeyId'] : 0;
+                            $attempts++;
+                            $saveResult = $configRepo->saveConfiguration(
+                                $newPlugin->id,
+                                [
+                                    [
+                                        'key' => 'publicKeyId',
+                                        'value' => $attempts,
+                                    ],
+                                ],
+                                $pluginSet->id,
+                            );
+                            $this->log(__CLASS__, __METHOD__, 'errorSaveResult', '', [$saveResult]);
+                        } else {
+                            $this->log(__CLASS__, __METHOD__, 'success', '', $result);
+                            $configData = [
+                                [
+                                    'key' => 'merchantId',
+                                    'value' => $oldPluginConfig['merchantId'],
+                                ],
+                                [
+                                    'key' => 'storeId',
+                                    'value' => $oldPluginConfig['loginClientId'],
+                                ],
+                                [
+                                    'key' => 'privateKey',
+                                    'value' => $result['privateKey'],
+                                ],
+                                [
+                                    'key' => 'publicKeyId',
+                                    'value' => $result['publicKeyId'],
+                                ],
+
+
+                            ];
+                            $saveResult = $configRepo->saveConfiguration(
+                                $newPlugin->id,
+                                $configData,
+                                $pluginSet->id,
+                            );
+                            $this->log(__CLASS__, __METHOD__, 'saveResult', '', [$saveResult, $configData]);
+
+                        }
+                    }
+                }
+
+            }
+        );
+    }
+
 }

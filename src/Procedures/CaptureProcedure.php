@@ -67,7 +67,7 @@ class CaptureProcedure
 
         foreach ($authorizedCharges as $authorizedCharge) {
             $this->log(__CLASS__, __METHOD__, 'before_capture', '', [$authorizedCharge, $order->amount]);
-            $amountToCapture = min($authorizedCharge->amount, $order->amount->invoiceTotal);
+            $amountToCapture = min($authorizedCharge->amount, $order->amount->invoiceTotal - $order->amount->giftCardAmount);
             $capturedCharge = $apiHelper->capture($authorizedCharge->reference, $amountToCapture);
             if ($capturedCharge) {
                 $transactionHelper->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);

@@ -3,6 +3,7 @@
 namespace AmazonPayCheckout\Providers;
 
 use AmazonPayCheckout\Contracts\TransactionRepositoryContract;
+use AmazonPayCheckout\CronHandlers\ExternalOrderMatcherCronHandler;
 use AmazonPayCheckout\Helpers\CheckoutHelper;
 use AmazonPayCheckout\Helpers\ConfigHelper;
 use AmazonPayCheckout\Helpers\OrderHelper;
@@ -15,6 +16,7 @@ use Ceres\Helper\LayoutContainer;
 use Plenty\Modules\Basket\Events\Basket\AfterBasketChanged;
 use Plenty\Modules\Basket\Events\Basket\AfterBasketCreate;
 use Plenty\Modules\Basket\Events\BasketItem\AfterBasketItemAdd;
+use Plenty\Modules\Cron\Services\CronContainer;
 use Plenty\Modules\EventProcedures\Services\Entries\ProcedureEntry;
 use Plenty\Modules\EventProcedures\Services\EventProceduresService;
 use Plenty\Modules\Payment\Events\Checkout\ExecutePayment;
@@ -35,16 +37,22 @@ class ServiceProvider extends ServiceProviderParent
         PaymentMethodHelper    $paymentMethodHelper,
         Dispatcher             $eventDispatcher,
         PaymentMethodContainer $payContainer,
-        EventProceduresService $eventProceduresService
+        EventProceduresService $eventProceduresService,
+        CronContainer          $cronContainer
     )
     {
         $paymentMethodId = $paymentMethodHelper->createMopIfNotExistsAndReturnId(); //TODO move to migration
-        $payContainer->register(PaymentMethod::PLUGIN_KEY . '::' . PaymentMethod::PAYMENT_KEY, PaymentMethod::class,
+        $payContainer->register(
+            PaymentMethod::PLUGIN_KEY . '::' . PaymentMethod::PAYMENT_KEY,
+            PaymentMethod::class,
             [
                 AfterBasketChanged::class,
                 AfterBasketItemAdd::class,
                 AfterBasketCreate::class,
-            ]);
+            ]
+        );
+        $this->registerCronjobs($cronContainer);
+
         $eventDispatcher->listen(ExecutePayment::class,
             function (ExecutePayment $event) use ($paymentMethodId) {
                 if ($event->getMop() == $paymentMethodId) {
@@ -58,17 +66,15 @@ class ServiceProvider extends ServiceProviderParent
                     $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
                     $checkoutSessionId = $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId');
 
-                    //TODO: handle empty checkoutSessionId
                     if (empty($checkoutSessionId)) {
-                        $this->log(__CLASS__, __METHOD__, 'checkoutSessionId_empty', [
+                        $this->log(__CLASS__, __METHOD__, 'emptyId', 'checkoutSessionId_empty', [
                             'orderId' => $orderId,
-                            'paymentMethodId'=>$event->getMop()
+                            'paymentMethodId' => $event->getMop(),
                         ]);
                         $event->setType('error');
                         $event->setValue('The payment could not be executed!');
                         return;
                     }
-
 
                     /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
                     $checkoutHelper = pluginApp(CheckoutHelper::class);
@@ -211,6 +217,15 @@ class ServiceProvider extends ServiceProviderParent
         /** @var WizardContainerContract $wizardContainerContract */
         $wizardContainerContract = pluginApp(WizardContainerContract::class);
         $wizardContainerContract->register('amazonPayWizard', MainWizard::class);
+
+        /** @var ConfigHelper $configHelper */
+        $configHelper = pluginApp(ConfigHelper::class);
+        $configHelper->upgradeKeys();
+    }
+
+    protected function registerCronjobs(CronContainer $cronContainer)
+    {
+        $cronContainer->add(CronContainer::EVERY_FIFTEEN_MINUTES, ExternalOrderMatcherCronHandler::class);
     }
 
     /**
@@ -221,6 +236,5 @@ class ServiceProvider extends ServiceProviderParent
     {
         $this->getApplication()->register(RouteServiceProvider::class);
         $this->getApplication()->bind(TransactionRepositoryContract::class, TransactionRepository::class);
-
     }
 }

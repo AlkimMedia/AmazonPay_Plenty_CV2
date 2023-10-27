@@ -5,7 +5,7 @@ namespace AmazonPayCheckout\Providers;
 use AmazonPayCheckout\Helpers\ConfigHelper;
 use Plenty\Plugin\Templates\Twig;
 
-class DataProviderCheckoutButton
+class DataProviderCheckoutButtonCopy1
 {
     public function call(Twig $twig)
     {

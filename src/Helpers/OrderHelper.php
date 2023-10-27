@@ -4,6 +4,7 @@ namespace AmazonPayCheckout\Helpers;
 
 use AmazonPayCheckout\Traits\LoggingTrait;
 use Exception;
+use Plenty\Modules\Account\Address\Models\AddressRelationType;
 use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
 use Plenty\Modules\Order\Models\Order;
@@ -191,8 +192,8 @@ class OrderHelper
         /** @var OrderRepositoryContract $orderRepository */
         $orderRepository = pluginApp(OrderRepositoryContract::class);
 
-        if($order = $orderRepository->findOrderById($orderId)){
-            if((float)$order->statusId > 3.001){
+        if ($order = $this->getOrder($orderId)) {
+            if ((float)$order->statusId > 3.001) {
                 return;
             }
         }
@@ -243,6 +244,28 @@ class OrderHelper
             $this->log(__CLASS__, __METHOD__, 'empty_status', 'set order status cancelled because of empty status', null);
         }
 
+    }
+
+    public function getShippingAddressId(Order $order)
+    {
+        /** @var AuthHelper $authHelper */
+        $authHelper = pluginApp(AuthHelper::class);
+        return $authHelper->processUnguarded(function () use ($order) {
+            $this->log(__CLASS__, __METHOD__, 'addressRelations ', '', [$order->addressRelations]);
+            $shippingAddressId = null;
+            $billingAddressId = null;
+
+            foreach ($order->addressRelations as $addressRelation) {
+                $this->log(__CLASS__, __METHOD__, 'addressRelation ', '', [$addressRelation, AddressRelationType::BILLING_ADDRESS, AddressRelationType::DELIVERY_ADDRESS]);
+                if ($addressRelation->typeId == AddressRelationType::BILLING_ADDRESS) {
+                    $billingAddressId = $addressRelation->addressId;
+                } elseif ($addressRelation->typeId == AddressRelationType::DELIVERY_ADDRESS) {
+                    $shippingAddressId = $addressRelation->addressId;
+                }
+            }
+            $this->log(__CLASS__, __METHOD__, 'addressRelationResult ', '', [$shippingAddressId, $billingAddressId]);
+            return $shippingAddressId ?: $billingAddressId;
+        });
     }
 
 }

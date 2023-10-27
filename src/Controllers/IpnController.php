@@ -66,25 +66,28 @@ class IpnController extends Controller
                     // this is to prevent IPN race conditions
                     // we check for an existing charge transaction entity, which should be created after completeCheckoutSession
                     // if no one appears after some time, we still register the charge just in case
-                    // this is only applied to payments initiated with this plugin
 
-                    if (strpos($chargePermission->merchantMetadata->customInformation, ConfigHelper::CUSTOM_INFORMATION_STRING) !== false) {
-                        $sleepCounter = 0;
-                        while ($sleepCounter++ < 5) {
-                            $existingChargeTransactionEntity = $this->transactionHelper->getTransaction($charge->chargeId, Transaction::TRANSACTION_TYPE_CHARGE);
-                            if (!empty($existingChargeTransactionEntity->id)) {
-                                $this->log(__CLASS__, __METHOD__, 'no_race');
-                                break;
-                            }
-                            $this->log(__CLASS__, __METHOD__, 'race', 'caught race condition ' . $sleepCounter, [
-                                'charge' => $charge,
-                            ]);
-                            sleep(1);
-                        }
+                    $maxSleepCounter = 4;
+                    if (str_contains($chargePermission->merchantMetadata->customInformation, ConfigHelper::CUSTOM_INFORMATION_STRING)) {
+                        $maxSleepCounter = 8;
                     }
+                    $sleepCounter = 0;
+                    while ($sleepCounter++ < $maxSleepCounter) {
+                        $existingChargeTransactionEntity = $this->transactionHelper->getTransaction($charge->chargeId, Transaction::TRANSACTION_TYPE_CHARGE);
+                        if (!empty($existingChargeTransactionEntity->id)) {
+                            $this->log(__CLASS__, __METHOD__, 'no_race');
+                            break;
+                        }
+                        $this->log(__CLASS__, __METHOD__, 'race', 'caught race condition ' . $sleepCounter, [
+                            'charge' => $charge,
+                        ]);
+                        sleep(1);
+                    }
+
+                    $this->transactionHelper->persistTransaction($chargePermission, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION);
                     $this->transactionHelper->updateCharge($charge);
                 } else {
-                    $this->log(__CLASS__, __METHOD__, 'data_error', 'charge data seems to be incomplete', ['charge' => $charge]);
+                    $this->log(__CLASS__, __METHOD__, 'data_error', 'charge data seems to be incomplete', ['charge' => $charge], true);
                 }
                 break;
             case 'REFUND':

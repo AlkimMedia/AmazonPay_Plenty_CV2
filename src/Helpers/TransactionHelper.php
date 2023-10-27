@@ -15,7 +15,7 @@ use Plenty\Modules\Payment\Models\Payment;
 class TransactionHelper
 {
     use LoggingTrait;
-
+    const TRANSACTION_ID_PATTERN = '/[SP][0-9]{2}-[0-9]{7}-[0-9]{7}/';
     /**
      * @var TransactionRepositoryContract
      */
@@ -24,6 +24,14 @@ class TransactionHelper
     public function __construct(TransactionRepositoryContract $transactionRepository)
     {
         $this->transactionRepository = $transactionRepository;
+    }
+
+    public static function findAmazonPayTransactionIdInString(string $string): ?string
+    {
+        if (preg_match(TransactionHelper::TRANSACTION_ID_PATTERN, $string, $matches)) {
+            return $matches[0];
+        }
+        return null;
     }
 
     /**
@@ -57,7 +65,7 @@ class TransactionHelper
                 $apiHelper = pluginApp(ApiHelper::class);
                 $capturedCharge = $apiHelper->capture($charge->chargeId);
                 $this->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);
-                if($capturedCharge && $capturedCharge->statusDetails->state !== StatusDetails::AUTHORIZED){
+                if ($capturedCharge && $capturedCharge->statusDetails->state !== StatusDetails::AUTHORIZED) {
                     $this->updateCharge($capturedCharge, $orderId);
                 }
             }
@@ -128,7 +136,7 @@ class TransactionHelper
             throw new Exception('Invalid Transaction Type ' . $type);
         }
 
-        if($transaction === null) {
+        if ($transaction === null) {
             return null;
         }
 
@@ -154,11 +162,12 @@ class TransactionHelper
     {
         $transaction = $this->getTransaction($chargePermission->chargePermissionId, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION);
         $transaction->amount = $chargePermission->limits->amountLimit->amount;
-        $transaction->currency = $chargePermission->limits->amountLimit->amount;
+        $transaction->currency = $chargePermission->limits->amountLimit->currencyCode;
         //->setCapturedAmount($chargePermission->getLimits()->getAmountLimit()->getAmount() - $chargePermission->getLimits()->getAmountBalance()->getAmount())
         $transaction->status = $chargePermission->statusDetails->state;
         $transaction->time = $chargePermission->creationTimestamp;
         $transaction->expiration = $chargePermission->expirationTimestamp;
+        $transaction->orderReference = $chargePermission->chargePermissionId;
         return $transaction;
     }
 
@@ -170,22 +179,64 @@ class TransactionHelper
      */
     public function getTransaction(?string $reference, string $type): ?Transaction
     {
-        if($reference === null) {
+        if ($reference === null) {
             $this->log(__CLASS__, __METHOD__, 'invalid', 'getTransaction() for empty reference', ['reference' => $reference]);
             return null;
         }
         if ($transactions = $this->transactionRepository->getTransactions([['reference', '=', $reference], ['type', '=', $type]])) {
             return $transactions[0];
         } else {
+            /** @var ConfigHelper $configHelper */
+            $configHelper = pluginApp(ConfigHelper::class);
             /** @var Transaction $transaction */
             $transaction = pluginApp(Transaction::class);
             $transaction->reference = $reference;
             $transaction->type = $type;
-            $transaction->merchantId = 'todo';//TODO
-            $transaction->mode = 'todo';//TODO
+            $transaction->merchantId = (string)$configHelper->getConfigurationValue('merchantId');
+            $transaction->mode = $configHelper->getConfigurationValue('sandbox')?'sandbox':'live';
         }
 
         return $transaction;
+    }
+
+    /**
+     * @param float $amount
+     * @param string $time
+     * @param int $tolerance
+     * @return Transaction[]
+     */
+    public function getChargePermissionsByAmountAndTime(float $amount, string $time, int $tolerance = 43200): array
+    {
+        $timeFrom = str_replace('_', 'T', date('Ymd_His', strtotime($time) - $tolerance));
+        $timeTo = str_replace('_', 'T', date('Ymd_His', strtotime($time) + $tolerance));
+        $transactions = $this->transactionRepository->getTransactions([
+            ['type', '=', Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION],
+            ['amount', '>=', $amount - 0.01],
+            ['amount', '<=', $amount + 0.01],
+            ['time', '>=', $timeFrom],
+            ['time', '<=', $timeTo],
+        ]);
+
+        $return = [];
+        $amountString = number_format($amount, 2);
+        if ($transactions) {
+            foreach ($transactions as $transaction) {
+                if (number_format($transaction->amount, 2) === $amountString) {
+                    $return[] = $transaction;
+                }
+            }
+        }
+        return $return;
+    }
+
+    /**
+     * @param string $chargePermissionId
+     * @return Transaction[]
+     */
+    public function getAllTransactionsForChargePermissionId(string $chargePermissionId):array{
+        return (array)$this->transactionRepository->getTransactions([
+            ['orderReference', '=', $chargePermissionId]
+        ]);
     }
 
     /**
@@ -195,7 +246,7 @@ class TransactionHelper
      */
     protected function getChargeTransaction($charge): ?Transaction
     {
-        if(!$charge || !$charge->chargeId){
+        if (!$charge || !$charge->chargeId) {
             $this->log(__CLASS__, __METHOD__, 'invalid', 'getChargeTransaction() for invalid charge', ['charge' => $charge]);
             return null;
         }
@@ -205,6 +256,7 @@ class TransactionHelper
         $transaction->status = $charge->statusDetails->state;
         $transaction->time = $charge->creationTimestamp;
         $transaction->expiration = $charge->expirationTimestamp;
+        $transaction->orderReference = $charge->chargePermissionId;
 
         if ($charge->captureAmount) {
             //$transaction->capturedAmount=(float)$charge->captureAmount->amount;
@@ -227,6 +279,7 @@ class TransactionHelper
         $transaction->currency = $refund->refundAmount->currencyCode;
         $transaction->status = $refund->statusDetails->state;
         $transaction->time = $refund->creationTimestamp;
+        $transaction->orderReference = (string)TransactionHelper::findAmazonPayTransactionIdInString($refund->refundId);
         return $transaction;
     }
 
@@ -239,6 +292,11 @@ class TransactionHelper
     public function getOrderTransactions(int $orderId): array
     {
         return $this->transactionRepository->getTransactions([['order', '=', $orderId]]);
+    }
+
+    public function saveTransaction(Transaction $transaction):void
+    {
+        $this->transactionRepository->saveTransaction($transaction);
     }
 
 }

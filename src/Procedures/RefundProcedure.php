@@ -30,7 +30,7 @@ class RefundProcedure
             switch ($procedureOrderObject->typeId) {
                 case OrderType::TYPE_CREDIT_NOTE:
                     $parentOrder = $procedureOrderObject->parentOrder;
-                    $amount = $procedureOrderObject->amounts[0]->invoiceTotal;
+                    $amount = $procedureOrderObject->amounts[0]->invoiceTotal - $procedureOrderObject->amounts[0]->giftCardAmount;
 
                     $this->log(__CLASS__, __METHOD__, 'credit_note_info', '', [
                         'orderReferences' => $procedureOrderObject->orderReferences,
@@ -52,7 +52,7 @@ class RefundProcedure
                     break;
                 case OrderType::TYPE_SALES_ORDER:
                     $orderId = $procedureOrderObject->id;
-                    $amount = $procedureOrderObject->amounts[0]->invoiceTotal;
+                    $amount = $procedureOrderObject->amounts[0]->invoiceTotal - $procedureOrderObject->amounts[0]->giftCardAmount;
                     break;
             }
             $this->log(__CLASS__, __METHOD__, 'info', '', ['orderId' => $orderId, 'procedureOrderObjectId' => $procedureOrderObject->id, 'amount' => $amount]);

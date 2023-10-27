@@ -9,6 +9,7 @@ use AmazonPayCheckout\Traits\TranslationTrait;
 use Exception;
 use Plenty\Modules\Account\Address\Contracts\AddressRepositoryContract;
 use Plenty\Modules\Account\Address\Models\AddressRelationType;
+use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
 use Plenty\Modules\Basket\Models\Basket;
 use Plenty\Modules\Frontend\Contracts\Checkout;
@@ -101,7 +102,8 @@ class CheckoutHelper
 
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
             try {
-                $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $order->amounts[0]->invoiceTotal, $order->amounts[0]->currency);
+                $totalAmount = $order->amounts[0]->invoiceTotal - $order->amounts[0]->giftCardAmount;
+                $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $totalAmount, $order->amounts[0]->currency);
 
                 if ($checkoutSession->statusDetails->state === StatusDetails::COMPLETED) {
                     $this->updateChargePermissionWithPlentyOrderId($checkoutSession->chargePermissionId, (int)$order->id);
@@ -110,7 +112,7 @@ class CheckoutHelper
                     $orderHelper = pluginApp(OrderHelper::class);
 
                     $payment = $orderHelper->createPaymentObject(
-                        $order->amounts[0]->invoiceTotal,
+                        $totalAmount,
                         Payment::STATUS_APPROVED,
                         $checkoutSession->chargePermissionId,
                         'Checkout Session Completed',
@@ -293,27 +295,23 @@ class CheckoutHelper
         $checkout = pluginApp(Checkout::class);
         $basket = $checkoutHelper->getBasket();
         if ($existingOrder) {
-            $this->log(__CLASS__, __METHOD__, 'addressRelations ', '', [$existingOrder->addressRelations]);
-            $shippingAddressId = null;
-            $billingAddressId = null;
-
-            foreach ($existingOrder->addressRelations as $addressRelation) {
-                $this->log(__CLASS__, __METHOD__, 'addressRelation ', '', [$addressRelation, AddressRelationType::BILLING_ADDRESS, AddressRelationType::DELIVERY_ADDRESS]);
-                if ($addressRelation->typeId == AddressRelationType::BILLING_ADDRESS) {
-                    $billingAddressId = $addressRelation->addressId;
-                } elseif ($addressRelation->typeId == AddressRelationType::DELIVERY_ADDRESS) {
-                    $shippingAddressId = $addressRelation->addressId;
-                }
-            }
-            $this->log(__CLASS__, __METHOD__, 'addressRelationResult ', '', [$shippingAddressId, $billingAddressId]);
-            $addressId = $shippingAddressId ?: $billingAddressId;
-
+            /** @var OrderHelper $orderHelper */
+            $orderHelper = pluginApp(OrderHelper::class);
+            $shippingAddressId = $orderHelper->getShippingAddressId($existingOrder);
         } else {
-            $addressId = $checkout->getCustomerShippingAddressId() ?? $checkout->getCustomerInvoiceAddressId();
+            $shippingAddressId = $checkout->getCustomerShippingAddressId() ?? $checkout->getCustomerInvoiceAddressId();
         }
 
-        $this->log(__CLASS__, __METHOD__, 'addressIds', '', ['addressId' => $addressId]);
-        $shippingAddress = $addressRepository->findAddressById($addressId);
+        $this->log(__CLASS__, __METHOD__, 'addressIds', '', ['shippingAddressId' => $shippingAddressId]);
+
+        /** @var AuthHelper $authHelper */
+        $authHelper = pluginApp(AuthHelper::class);
+
+        $shippingAddress = $authHelper->processUnguarded(function () use ($addressRepository, $shippingAddressId) {
+            return $addressRepository->findAddressById($shippingAddressId);
+        });
+
+
         /** @var CountryRepositoryContract $countryRepository */
         $countryRepository = pluginApp(CountryRepositoryContract::class);
         $country = $countryRepository->getCountryById($shippingAddress->countryId);
@@ -334,7 +332,7 @@ class CheckoutHelper
                 'paymentIntent' => 'Authorize',
                 'canHandlePendingAuthorization' => $configHelper->getConfigurationValue('authorizationMode') !== 'fast_auth',
                 'chargeAmount' => [
-                    'amount' => $existingOrder ? $existingOrder->amounts[0]->invoiceTotal : $basket->basketAmount,
+                    'amount' => $existingOrder ? ($existingOrder->amounts[0]->invoiceTotal - $existingOrder->amounts[0]->giftCardAmount) : $basket->basketAmount,
                     'currencyCode' => $existingOrder ? $existingOrder->amounts[0]->currency : $basket->currency,
                 ],
             ],
