@@ -78,6 +78,11 @@ class ConfigHelper
         return $this->getConfigurationValue('authorizedStatus');
     }
 
+    public function isExternalOrderMatchingActive(): bool
+    {
+        return $this->getConfigurationValue('useExternalOrderMatching') === 'true';
+    }
+
     public function getUrl($path): string
     {
         return $this->getAbsoluteUrl($path);
@@ -261,14 +266,9 @@ class ConfigHelper
                             continue;
                         }
 
-                        if(!empty($newPluginConfig['merchantId']) && $newPluginConfig['merchantId'] !== $oldPluginConfig['merchantId']){
+                        if (!empty($newPluginConfig['merchantId']) && $newPluginConfig['merchantId'] !== $oldPluginConfig['merchantId']) {
                             continue;
                         }
-
-                        if (!empty($newPluginConfig['keyUpgradeAttempts']) && $newPluginConfig['keyUpgradeAttempts'] >= 100000) {
-                            continue;
-                        }
-
 
                         /** @var LibraryCallContract $libCaller */
                         $libCaller = pluginApp(LibraryCallContract::class);
@@ -293,7 +293,7 @@ class ConfigHelper
 
                         if ($result['error'] || empty($result['privateKey']) || empty($result['publicKeyId'])) {
                             $this->log(__CLASS__, __METHOD__, 'error', $result['error'] ?? '', [$result], true);
-                            $attempts = !empty($newPluginConfig['publicKeyId'])? (int)$newPluginConfig['publicKeyId'] : 0;
+                            $attempts = !empty($newPluginConfig['publicKeyId']) ? (int)$newPluginConfig['publicKeyId'] : 0;
                             $attempts++;
                             $saveResult = $configRepo->saveConfiguration(
                                 $newPlugin->id,

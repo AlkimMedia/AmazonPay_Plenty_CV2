@@ -127,6 +127,14 @@
           "options": {
             "defaultValue": "true"
           }
+        },
+        "useExternalOrderMatching": {
+          "type": "checkBox",
+          "required": false,
+          "label": "Config.useExternalOrderMatchingLabel",
+          "options": {
+            "defaultValue": "false"
+          }
         }
       }
     },

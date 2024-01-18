@@ -11,6 +11,7 @@ use Plenty\Modules\Account\Address\Models\AddressRelationType;
 use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
 use Plenty\Modules\Order\Models\Order;
+use Plenty\Modules\Order\Models\OrderType;
 use Plenty\Modules\Order\Property\Models\OrderProperty;
 use Plenty\Modules\Order\Property\Models\OrderPropertyType;
 use Plenty\Modules\Payment\Models\Payment;
@@ -20,6 +21,7 @@ class ExternalOrderHelper
 
     protected TransactionHelper $transactionHelper;
     protected ApiHelper $apiHelper;
+    protected ConfigHelper $configHelper;
     use LoggingTrait;
 
     /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
@@ -27,11 +29,15 @@ class ExternalOrderHelper
     {
         $this->transactionHelper = pluginApp(TransactionHelper::class);
         $this->apiHelper = pluginApp(ApiHelper::class);
+        $this->configHelper = pluginApp(ConfigHelper::class);
     }
 
     public function process($maxTimeBack = 86400, $maxStatusId = 5)
     {
-
+        if (!$this->configHelper->isExternalOrderMatchingActive()) {
+            $this->log(__CLASS__, __METHOD__, 'off', '', ['configValue' => $this->configHelper->getConfigurationValue('useExternalOrderMatching')]);
+            return;
+        }
         /** @var AuthHelper $authHelper */
         $authHelper = pluginApp(AuthHelper::class);
         $authHelper->processUnguarded(function () use ($maxTimeBack, $maxStatusId) {
@@ -46,6 +52,7 @@ class ExternalOrderHelper
                 [
                     'createdAtFrom' => date('c', time() - $maxTimeBack),
                     'statusIdTo' => $maxStatusId,
+                    'orderTypes' => [OrderType::TYPE_SALES_ORDER],
                     'methodOfPaymentId' => $paymentMethodId, //probably not working
                 ]
             );
@@ -79,8 +86,12 @@ class ExternalOrderHelper
     //would need auth helper if public
     protected function processOrder($order): void
     {
+        if((int)$order['typeId'] !== OrderType::TYPE_SALES_ORDER){
+            $this->log(__CLASS__, __METHOD__, 'notSalesOrder', '', [$order]);
+            return;
+        }
         $this->log(__CLASS__, __METHOD__, 'amazonPayOrder', '', [$order]);
-        $orderTransactions = $this->transactionHelper->getOrderTransactions($order['id']);
+        $orderTransactions = $this->transactionHelper->getOrderTransactions((int)$order['id']);
         if (!empty($orderTransactions)) {
             //already matched
             return;
@@ -88,7 +99,14 @@ class ExternalOrderHelper
 
         $chargePermissionId = $this->getChargePermissionId($order);
 
+
+
         if ($chargePermissionId) {
+            $existingChargePermissionTransaction = $this->transactionHelper->getTransaction($chargePermissionId, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION);
+            if($existingChargePermissionTransaction && $existingChargePermissionTransaction->order){
+                $this->log(__CLASS__, __METHOD__, 'alreadyMatched', '', ['chargePermissionId' => $chargePermissionId, 'order' => $order]);
+                return;
+            }
             $this->executeMatching((int)$order['id'], $chargePermissionId);
 
         }
@@ -160,7 +178,7 @@ class ExternalOrderHelper
         $chargePermissionAddressString = $chargePermissionAddress->name . ' ' . $chargePermissionAddress->city . ' ' . $chargePermissionAddress->postalCode;
         $orderAddress = $this->getShippingAddressArray($order);
 
-        $orderAddressString = $orderAddress['name2'] . ' ' . $orderAddress['name3'].' '.$orderAddress['town'] . ' ' . $orderAddress['postalCode'];
+        $orderAddressString = $orderAddress['name2'] . ' ' . $orderAddress['name3'] . ' ' . $orderAddress['town'] . ' ' . $orderAddress['postalCode'];
 
         $regex = '/[^a-z0-9 ]/i';
         $chargePermissionAddressString = preg_replace($regex, '', $chargePermissionAddressString);
@@ -172,7 +190,7 @@ class ExternalOrderHelper
         $diff1 = array_diff($chargePermissionAddressParts, $orderAddressParts);
         $diff2 = array_diff($orderAddressParts, $chargePermissionAddressParts);
 
-        $differenceNumber = count($diff1) + count($diff2) ;
+        $differenceNumber = count($diff1) + count($diff2);
         $originalNumber = count($chargePermissionAddressParts) + count($orderAddressParts);
         $differencePercentage = $differenceNumber / $originalNumber;
         $this->log(__CLASS__, __METHOD__, 'addressMatch', '', [
