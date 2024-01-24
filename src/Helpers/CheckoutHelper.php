@@ -8,7 +8,6 @@ use AmazonPayCheckout\Traits\LoggingTrait;
 use AmazonPayCheckout\Traits\TranslationTrait;
 use Exception;
 use Plenty\Modules\Account\Address\Contracts\AddressRepositoryContract;
-use Plenty\Modules\Account\Address\Models\AddressRelationType;
 use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
 use Plenty\Modules\Basket\Models\Basket;
@@ -92,7 +91,13 @@ class CheckoutHelper
         }
     }
 
-    public function executePayment(Order $order, string $checkoutSessionId)
+    /**
+     * @param Order $order
+     * @param string $checkoutSessionId
+     * @return void
+     * @throws Exception
+     */
+    public function executePayment(Order $order, string $checkoutSessionId): void
     {
         $this->log(__CLASS__, __METHOD__, 'start', '', ['order' => $order, 'session' => $checkoutSessionId]);
 
@@ -100,51 +105,57 @@ class CheckoutHelper
         $apiHelper = pluginApp(ApiHelper::class);
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
 
-        if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
-            try {
-                $totalAmount = $order->amounts[0]->invoiceTotal - $order->amounts[0]->giftCardAmount;
-                $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $totalAmount, $order->amounts[0]->currency);
-
-                if ($checkoutSession->statusDetails->state === StatusDetails::COMPLETED) {
-                    $this->updateChargePermissionWithPlentyOrderId($checkoutSession->chargePermissionId, (int)$order->id);
-
-                    /** @var \AmazonPayCheckout\Helpers\OrderHelper $orderHelper */
-                    $orderHelper = pluginApp(OrderHelper::class);
-
-                    $payment = $orderHelper->createPaymentObject(
-                        $totalAmount,
-                        Payment::STATUS_APPROVED,
-                        $checkoutSession->chargePermissionId,
-                        'Checkout Session Completed',
-                        null, Payment::PAYMENT_TYPE_CREDIT,
-                        Payment::TRANSACTION_TYPE_PROVISIONAL_POSTING,
-                        $order->amounts[0]->currency
-                    );
-
-                    $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $order);
-                    $orderHelper->setOrderExternalId($order->id, $checkoutSession->chargePermissionId);
-                    /** @var \AmazonPayCheckout\Helpers\TransactionHelper $transactionHelper */
-                    $transactionHelper = pluginApp(TransactionHelper::class);
-
-                    if ($checkoutSession->chargeId) {
-                        $charge = $apiHelper->getCharge($checkoutSession->chargeId);
-                        $transactionHelper->updateCharge($charge, $order->id);
-                    }
-
-                    $chargePermission = $apiHelper->getChargePermission($checkoutSession->chargePermissionId);
-                    $transactionHelper->persistTransaction($chargePermission, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION, $order->id, $payment->id);
-
-                    if ($checkoutSession->chargeId) {
-                        $charge = $apiHelper->getCharge($checkoutSession->chargeId);
-                        $transactionHelper->updateCharge($charge, $order->id);
-                    }
-                }
-            } catch (Exception $e) {
-                $this->log(__CLASS__, __METHOD__, 'error', '', [$e->getMessage(), $order], true);
-            }
-        } else {
-            $this->log(__CLASS__, __METHOD__, 'wrong_state', '', [$checkoutSession, $order], true);
+        if (empty($checkoutSession) || $checkoutSession->statusDetails->state !== StatusDetails::OPEN) {
+            $this->log(__CLASS__, __METHOD__, 'checkoutSessionIssue', '', ['checkoutSession' => $checkoutSession, 'order' => $order], true);
+            throw new Exception('Checkout Session is empty or not open!');
         }
+        $totalAmount = $order->amounts[0]->invoiceTotal - $order->amounts[0]->giftCardAmount;
+        $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $totalAmount, $order->amounts[0]->currency);
+
+        if ($checkoutSession->statusDetails->state !== StatusDetails::COMPLETED) {
+            $this->log(__CLASS__, __METHOD__, 'checkoutSessionStatusIssue', '', ['checkoutSession' => $checkoutSession, 'order' => $order], true);
+            throw new Exception('Checkout Session is empty or not open!');
+        }
+
+        try {
+            //from this point we do not want to throw an exception anymore
+            $this->updateChargePermissionWithPlentyOrderId($checkoutSession->chargePermissionId, (int)$order->id);
+
+            /** @var \AmazonPayCheckout\Helpers\OrderHelper $orderHelper */
+            $orderHelper = pluginApp(OrderHelper::class);
+
+            $payment = $orderHelper->createPaymentObject(
+                $totalAmount,
+                Payment::STATUS_APPROVED,
+                $checkoutSession->chargePermissionId,
+                'Checkout Session Completed',
+                null, Payment::PAYMENT_TYPE_CREDIT,
+                Payment::TRANSACTION_TYPE_PROVISIONAL_POSTING,
+                $order->amounts[0]->currency
+            );
+
+            $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $order);
+            $orderHelper->setOrderExternalId($order->id, $checkoutSession->chargePermissionId);
+            /** @var \AmazonPayCheckout\Helpers\TransactionHelper $transactionHelper */
+            $transactionHelper = pluginApp(TransactionHelper::class);
+
+            if ($checkoutSession->chargeId) {
+                $charge = $apiHelper->getCharge($checkoutSession->chargeId);
+                $transactionHelper->updateCharge($charge, $order->id);
+            }
+
+            $chargePermission = $apiHelper->getChargePermission($checkoutSession->chargePermissionId);
+            $transactionHelper->persistTransaction($chargePermission, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION, $order->id, $payment->id);
+
+            if ($checkoutSession->chargeId) {
+                $charge = $apiHelper->getCharge($checkoutSession->chargeId);
+                $transactionHelper->updateCharge($charge, $order->id);
+            }
+
+        } catch (Exception $e) {
+            $this->log(__CLASS__, __METHOD__, 'error', '', [$e->getMessage(), $order], true);
+        }
+
 
     }
 
@@ -318,14 +329,13 @@ class CheckoutHelper
 
         $this->log(__CLASS__, __METHOD__, 'shippingAddress', '', ['address' => $shippingAddress, 'country' => $country]);
 
-        //TODO leave address empty if pay only
         return [
             'webCheckoutDetails' => [
                 'checkoutResultReturnUrl' => $existingOrder === null ? $configHelper->getCheckoutResultReturnUrl() : $configHelper->getPayExistingOrderCheckoutResultReturnUrl($existingOrder->id),
                 'checkoutCancelUrl' => $configHelper->getShopCheckoutUrl(),
                 'checkoutMode' => 'ProcessOrder',
             ],
-            'platformId'=>$configHelper->getPlatformId(),
+            'platformId' => $configHelper->getPlatformId(),
             'storeId' => $configHelper->getConfigurationValue('storeId'),
             'scopes' => ['name', 'email', 'phoneNumber', 'billingAddress'],
             'paymentDetails' => [
@@ -338,7 +348,7 @@ class CheckoutHelper
             ],
             'merchantMetadata' => [
                 'merchantStoreName' => $configHelper->getStoreName(),
-                'customInformation' => $configHelper->getCustomInformationString()
+                'customInformation' => $configHelper->getCustomInformationString(),
             ],
             'addressDetails' => [
                 'name' => trim($shippingAddress->name1 . ' ' . $shippingAddress->name2 . ' ' . $shippingAddress->name3),
@@ -354,7 +364,6 @@ class CheckoutHelper
 
     public function hasAvailableShippingMethod(): bool
     {
-        //TODO Logging here and in child methods (getBasket) necessary?
         $params = [
             'countryId' => $this->getShippingCountryId(),
             'webstoreId' => pluginApp(Application::class)->getWebstoreId(),
