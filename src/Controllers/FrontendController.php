@@ -167,7 +167,12 @@ class FrontendController extends Controller
 
             /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
             $checkoutHelper = pluginApp(CheckoutHelper::class);
-            $checkoutHelper->executePayment($order, $checkoutSessionId);
+            try {
+                $checkoutHelper->executePayment($order, $checkoutSessionId);
+            }catch (Exception $e){
+                $this->log(__CLASS__, __METHOD__, 'failed', '', [$e->getMessage(), $e->getTraceAsString()]);
+                $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.executePaymentError'));
+            }
         }
         return $this->response->redirectTo($this->getOrderConfirmationUrl($order));
     }

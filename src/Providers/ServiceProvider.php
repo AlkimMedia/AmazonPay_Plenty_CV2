@@ -56,6 +56,9 @@ class ServiceProvider extends ServiceProviderParent
         $eventDispatcher->listen(ExecutePayment::class,
             function (ExecutePayment $event) use ($paymentMethodId) {
                 if ($event->getMop() == $paymentMethodId) {
+                    /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
+                    $checkoutHelper = pluginApp(CheckoutHelper::class);
+
                     $orderId = $event->getOrderId();
 
                     /** @var OrderHelper $orderHelper */
@@ -72,13 +75,18 @@ class ServiceProvider extends ServiceProviderParent
                             'paymentMethodId' => $event->getMop(),
                         ]);
                         $event->setType('error');
-                        $event->setValue('The payment could not be executed!');
+                        $event->setValue($checkoutHelper->getTranslation('AmazonPay.executePaymentError'));
                         return;
                     }
-
-                    /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
-                    $checkoutHelper = pluginApp(CheckoutHelper::class);
-                    $checkoutHelper->executePayment($order, $checkoutSessionId);
+                    try {
+                        $checkoutHelper->executePayment($order, $checkoutSessionId);
+                    }catch(\Exception $e){
+                        $this->log(__CLASS__, __METHOD__, 'failed', $e->getMessage(), [
+                            'orderId' => $orderId
+                        ]);
+                        $event->setType('error');
+                        $event->setValue($checkoutHelper->getTranslation('AmazonPay.executePaymentError'));
+                    }
                 }
             }
         );

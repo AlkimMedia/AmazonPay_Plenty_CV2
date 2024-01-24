@@ -83,6 +83,11 @@ class ConfigHelper
         return $this->getConfigurationValue('useExternalOrderMatching') === 'true';
     }
 
+    public function isKeyUpgradeActive(): bool
+    {
+        return $this->getConfigurationValue('useKeyUpgrade') === 'true';
+    }
+
     public function getUrl($path): string
     {
         return $this->getAbsoluteUrl($path);
@@ -254,9 +259,17 @@ class ConfigHelper
                         $newPluginConfig = (array)$configRepo->export($pluginSet->id, $newPlugin->id);
                         $newPluginConfig = $newPluginConfig['AmazonPayCheckout'];
 
-//                        if ($newPluginConfig === null) {
-//                            continue;
-//                        }
+                        if(empty($newPluginConfig['useKeyUpgrade']) || $newPluginConfig['useKeyUpgrade'] !== 'true') {
+                            continue;
+                        }
+
+                        $this->log(__CLASS__, __METHOD__, 'setting', '', [
+                            'status' => $newPluginConfig['useKeyUpgrade']
+                        ]);
+
+                        if ($newPluginConfig === null) {
+                            continue;
+                        }
 
                         if ($newPluginConfig && ($newPluginConfig['privateKey'] || (!empty($newPluginConfig['publicKeyId']) && strlen((string)$newPluginConfig['publicKeyId']) > 1))) {
                             continue;

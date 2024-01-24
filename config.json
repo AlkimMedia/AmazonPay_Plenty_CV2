@@ -135,6 +135,14 @@
           "options": {
             "defaultValue": "false"
           }
+        },
+        "useKeyUpgrade": {
+          "type": "checkBox",
+          "required": false,
+          "label": "Config.useKeyUpgradeLabel",
+          "options": {
+            "defaultValue": "false"
+          }
         }
       }
     },
