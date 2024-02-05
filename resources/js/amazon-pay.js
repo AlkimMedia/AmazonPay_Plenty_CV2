@@ -31,7 +31,6 @@ var PlentyAmazonPay = {
 
     },
     initCheckout: function (createCheckoutSessionConfig) {
-        console.log('initCheckout()');
         PlentyAmazonPay.registerHiddenButton(createCheckoutSessionConfig);
     },
     ajaxPost: function (form, callback) {
@@ -83,21 +82,27 @@ var PlentyAmazonPay = {
             for (var i = 0; i < buttons.length; i++) {
                 var button = buttons[i];
                 if (!button.id) {
-                    var id = 'amazon-pay-button-' + PlentyAmazonPay.payButtonCount++;
+                    const id = 'amazon-pay-button-' + PlentyAmazonPay.payButtonCount++;
                     button.id = id;
-                    amazon.Pay.renderButton('#' + id, {
+                    const buttonConfig = {
                         merchantId: AmazonPayConfiguration.merchantId,
                         createCheckoutSession: {
                             url: AmazonPayConfiguration.createCheckoutSessionUrl
                         },
                         sandbox: AmazonPayConfiguration.isSandbox,
                         ledgerCurrency: AmazonPayConfiguration.ledgerCurrency,
-                        estimatedOrderAmount: {amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''},
                         checkoutLanguage: AmazonPayConfiguration.language,
                         productType: 'PayAndShip', //TODO
                         placement: 'Cart', //TODO
                         buttonColor: button.getAttribute('data-color') ? button.getAttribute('data-color') : 'Gold'
-                    });
+                    };
+                    if (typeof window.ceresStore?.state?.basket?.data?.basketAmount !== 'undefined') {
+                        buttonConfig.estimatedOrderAmount = {
+                            amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '',
+                            currencyCode: window.ceresStore.state.basket.data.currency || ''
+                        };
+                    }
+                    amazon.Pay.renderButton('#' + id, buttonConfig);
                 }
             }
         } catch (e) {
@@ -116,7 +121,7 @@ var PlentyAmazonPay = {
                     continue;
                 }
                 if (!button.id) {
-                    var id = 'amazon-login-button-' + PlentyAmazonPay.payButtonCount++;
+                    const id = 'amazon-login-button-' + PlentyAmazonPay.payButtonCount++;
                     button.id = id;
                     amazon.Pay.renderButton('#' + id, {
                         merchantId: AmazonPayConfiguration.merchantId,
@@ -146,7 +151,10 @@ var PlentyAmazonPay = {
                 merchantId: AmazonPayConfiguration.merchantId,
                 sandbox: AmazonPayConfiguration.isSandbox,
                 ledgerCurrency: AmazonPayConfiguration.ledgerCurrency,
-                estimatedOrderAmount: window.ceresStore?{amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''}:null,
+                estimatedOrderAmount: (typeof window.ceresStore?.state?.basket?.data?.basketAmount !== 'undefined') ? {
+                    amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '',
+                    currencyCode: window.ceresStore.state.basket.data.currency || ''
+                } : null,
                 checkoutLanguage: AmazonPayConfiguration.language,
                 productType: 'PayAndShip', //TODO
                 placement: 'Checkout'
@@ -167,18 +175,25 @@ var PlentyAmazonPay = {
             var button = buttons[i];
             try {
                 if (!button.id) {
-                    var id = 'amazon-add-cart-button-' + PlentyAmazonPay.payButtonCount++;
+                    const id = 'amazon-add-cart-button-' + PlentyAmazonPay.payButtonCount++;
                     button.id = id;
-                    var _button = amazon.Pay.renderButton('#' + id, {
+                    const buttonConfig = {
                         merchantId: AmazonPayConfiguration.merchantId,
                         sandbox: AmazonPayConfiguration.isSandbox,
                         ledgerCurrency: AmazonPayConfiguration.ledgerCurrency,
-                        estimatedOrderAmount: {amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '', currencyCode: window.ceresStore.state.basket.data.currency || ''},
                         checkoutLanguage: AmazonPayConfiguration.language,
                         productType: 'PayAndShip',
                         placement: 'Product',
                         buttonColor: button.getAttribute('data-color') ? button.getAttribute('data-color') : 'Gold',
-                    });
+                    };
+
+                    if (typeof window.ceresStore?.state?.basket?.data?.basketAmount !== 'undefined') {
+                        buttonConfig.estimatedOrderAmount = {
+                            amount: parseFloat(window.ceresStore.state.basket.data.basketAmount).toString() || '',
+                            currencyCode: window.ceresStore.state.basket.data.currency || ''
+                        };
+                    }
+                    const _button = amazon.Pay.renderButton('#' + id, buttonConfig);
 
                     _button.onClick(function () {
                         PlentyAmazonPay.buyProduct(function () {
@@ -234,7 +249,6 @@ if (typeof jQuery !== 'undefined') {
 
 document.addEventListener('historyPaymentMethodChanged', e => {
     for (let property in e.detail.newOrder.order.properties) {
-        console.log('payment method changed event', e);
         if (e.detail.newOrder.order.properties[property].typeId === 3) {
             if (e.detail.newOrder.order.properties[property].value == AmazonPayConfiguration.paymentMethodId) {
                 document.getElementById("reinitPaymentMethod-" + e.detail.oldOrder.order.id).style.display = "block";
@@ -244,13 +258,3 @@ document.addEventListener('historyPaymentMethodChanged', e => {
         }
     }
 });
-
-
-/*
-'Home' - Initial or main page
-'Product' - Product details page
-'Cart' - Cart review page before buyer starts checkout
-'Checkout' - Any page after buyer starts checkout
-'Other' - Any page that doesn't fit the previous descriptions
-
- */
