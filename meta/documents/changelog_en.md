@@ -1,5 +1,9 @@
 # Release notes for Amazon Pay
 
+## 1.1.1
+- Bugfix: Error in refund event action
+- Bugfix: Estimated order amount in JavaScript
+
 ## 1.1.0
 - Feature: Plenty as ERP with external storefront (payment matching)
 - Feature: Estimated Order Amount (allows more payment means)

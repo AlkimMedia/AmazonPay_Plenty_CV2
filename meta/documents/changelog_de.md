@@ -1,5 +1,9 @@
 # Release Notes für Amazon Pay Checkout
 
+## 1.1.1
+- Bugfix: Fehler bei Refund Ereignisaktion
+- Bugfix: Estimated order amount in JavaScript
+
 ## 1.1.0
 - Feature: Plenty als ERP mit externer Storefront (Matching von Zahlungen)
 - Feature: Estimated Order Amount (erlaubt mehr Zahlungsmittel)
