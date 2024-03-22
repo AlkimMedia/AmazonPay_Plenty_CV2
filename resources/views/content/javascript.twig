@@ -3,7 +3,7 @@
         {%  if config('AmazonPayCheckout.hideButtons') == "true" %}display: none !important;{%  endif %}
     }
 </style>
-<link rel="stylesheet" href="{{ plugin_path('AmazonPayCheckout') }}/css/amazon-pay.css" />
+<link rel="stylesheet" href="{{ plugin_path('AmazonPayCheckout') }}/css/amazon-pay.min.css" />
 <script src="https://static-eu.payments-amazon.com/checkout.js"></script>
 <script type="text/javascript" charset="utf-8">
     const AmazonPayConfiguration = {
@@ -20,4 +20,4 @@
         buttonColor: '{{ config('AmazonPayCheckout.payButtonColor') }}'
     };
 </script>
-<script src="{{ plugin_path('AmazonPayCheckout') }}/js/amazon-pay.js"></script>
+<script src="{{ plugin_path('AmazonPayCheckout') }}/js/amazon-pay.min.js"></script>

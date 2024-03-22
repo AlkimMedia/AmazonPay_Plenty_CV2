@@ -1,5 +1,8 @@
 # Release notes for Amazon Pay
 
+## 1.1.2
+- Minify CSS and JS
+
 ## 1.1.1
 - Bugfix: Error in refund event action
 - Bugfix: Estimated order amount in JavaScript

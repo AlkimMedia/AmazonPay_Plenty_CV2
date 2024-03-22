@@ -21,7 +21,7 @@ this.Element && function (ElementPrototype) {
 }(Element.prototype);
 
 var PlentyAmazonPay = {
-    debug: true,
+    debug: false,
     payButtonCount: 0,
     init: function () {
         PlentyAmazonPay.registerChangeActions();

@@ -223,12 +223,8 @@ class ServiceProvider extends ServiceProviderParent
         );
 
         /** @var WizardContainerContract $wizardContainerContract */
-        $wizardContainerContract = pluginApp(WizardContainerContract::class);
-        $wizardContainerContract->register('amazonPayWizard', MainWizard::class);
-
-        /** @var ConfigHelper $configHelper */
-        $configHelper = pluginApp(ConfigHelper::class);
-        $configHelper->upgradeKeys();
+//        $wizardContainerContract = pluginApp(WizardContainerContract::class);
+//        $wizardContainerContract->register('amazonPayWizard', MainWizard::class);
     }
 
     protected function registerCronjobs(CronContainer $cronContainer)

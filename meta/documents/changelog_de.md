@@ -1,5 +1,8 @@
 # Release Notes für Amazon Pay Checkout
 
+## 1.1.2
+- Komprimierung von CSS and JS
+
 ## 1.1.1
 - Bugfix: Fehler bei Refund Ereignisaktion
 - Bugfix: Estimated order amount in JavaScript
