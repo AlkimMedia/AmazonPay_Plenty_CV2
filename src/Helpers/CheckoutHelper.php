@@ -364,8 +364,13 @@ class CheckoutHelper
 
     public function hasAvailableShippingMethod(): bool
     {
+        $shippingCountryId = $this->getShippingCountryId();
+        if($shippingCountryId === 0) {
+            return false;
+        }
+
         $params = [
-            'countryId' => $this->getShippingCountryId(),
+            'countryId' => $shippingCountryId,
             'webstoreId' => pluginApp(Application::class)->getWebstoreId(),
         ];
 
@@ -397,7 +402,7 @@ class CheckoutHelper
     {
         /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
-        return $checkout->getShippingCountryId();
+        return (int)$checkout->getShippingCountryId();
     }
 
 
