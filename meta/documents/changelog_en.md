@@ -1,5 +1,8 @@
 # Release notes for Amazon Pay
 
+## 1.2.0
+- Prevent address changes in checkout
+
 ## 1.1.2
 - Minify CSS and JS
 

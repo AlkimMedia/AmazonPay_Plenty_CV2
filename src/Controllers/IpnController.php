@@ -106,9 +106,7 @@ class IpnController extends Controller
 
     protected function isIpnValid($messageBody): bool
     {
-        /** @var LibraryCallContract $libCaller */
         $libCaller = pluginApp(LibraryCallContract::class);
-
         $result = $libCaller->call(
             'AmazonPayCheckout::ipn_validator',
             [
@@ -116,7 +114,6 @@ class IpnController extends Controller
             ]
         );
         $this->log(__CLASS__, __METHOD__, 'ipn_validator_result', '', ['message' => $messageBody, 'result' => $result]);
-
         return (bool)$result['isValid'];
     }
 

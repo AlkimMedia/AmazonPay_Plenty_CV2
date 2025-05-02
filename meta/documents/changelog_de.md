@@ -1,5 +1,8 @@
 # Release Notes für Amazon Pay Checkout
 
+## 1.2.0
+- Verhinderung von Adressänderungen im Checkout
+
 ## 1.1.2
 - Komprimierung von CSS and JS
 

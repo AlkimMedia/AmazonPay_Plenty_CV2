@@ -57,29 +57,24 @@ class FrontendController extends Controller
         if (empty($checkoutSessionId)) {
             return $this->response->redirectTo($this->getShopBasketUrl()); //TODO error msg+log
         }
-
-        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
-        $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
-        $sessionStorageRepository->setSessionValue('amazonCheckoutSessionId', $checkoutSessionId);
-
-        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
+        $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
+
+        $sessionStorageRepository->setSessionValue('amazonCheckoutSessionId', $checkoutSessionId);
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
 
         if ($checkoutSession->statusDetails->state !== StatusDetails::OPEN) {
             return $this->response->redirectTo($this->getShopBasketUrl()); //TODO error msg+log
         }
 
-        /** @var \AmazonPayCheckout\Helpers\AccountHelper $accountHelper */
         $accountHelper = pluginApp(AccountHelper::class);
+        $checkoutHelper = pluginApp(CheckoutHelper::class);
+
         if ($accountHelper->isLoggedIn()) {
             $accountHelper->setAddresses($checkoutSession);
         } else {
             $accountHelper->createGuestSession($checkoutSession);
         }
-
-        /** @var CheckoutHelper $checkoutHelper */
-        $checkoutHelper = pluginApp(CheckoutHelper::class);
         $checkoutHelper->setCurrentPaymentMethodId();
 
         return $this->response->redirectTo($this->getShopCheckoutUrl());
@@ -88,11 +83,8 @@ class FrontendController extends Controller
     public function checkoutStart()
     {
         $this->log(__CLASS__, __METHOD__, 'start', '👩 checkout start');
-        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
         $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
-        /** @var CheckoutHelper $checkoutHelper */
         $checkoutHelper = pluginApp(CheckoutHelper::class);
 
         try {
@@ -104,6 +96,12 @@ class FrontendController extends Controller
             $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
             if (!$checkoutSession->statusDetails || $checkoutSession->statusDetails->state !== StatusDetails::OPEN) {
                 throw new Exception('no valid checkout session');
+            }
+            try {
+                $checkoutHelper->validateShippingAddress($checkoutSession, $checkoutHelper->getCurrentCheckoutShippingAddress(pluginApp(Checkout::class)));
+            } catch (Exception $e) {
+                $this->log(__CLASS__, __METHOD__, 'addressValidationFailed', '', [$e->getMessage()]);
+                throw $e;
             }
         } catch (Exception $e) {
             return $this->_continueWithAdditionalPaymentButton($apiHelper, $checkoutHelper);
@@ -132,11 +130,8 @@ class FrontendController extends Controller
     public function payOrder()
     {
         $this->log(__CLASS__, __METHOD__, 'start', '👩 pay order start');
-        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-        /** @var CheckoutHelper $checkoutHelper */
         $checkoutHelper = pluginApp(CheckoutHelper::class);
-        /** @var OrderHelper $orderHelper */
         $orderHelper = pluginApp(OrderHelper::class);
 
         $orderId = (int)$this->request->get('order_id');
@@ -150,26 +145,18 @@ class FrontendController extends Controller
     public function payOrderProcess()
     {
         $this->log(__CLASS__, __METHOD__, 'start', '👩 pay order process', [$this->request->all()]);
-        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-
         $checkoutSessionId = $this->request->get('amazonCheckoutSessionId');
-
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
         $this->log(__CLASS__, __METHOD__, 'checkoutSession', '', [$checkoutSession]);
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
             $orderId = (int)$this->request->get('order_id');
-
-            /** @var OrderHelper $orderHelper */
             $orderHelper = pluginApp(OrderHelper::class);
-            $order = $orderHelper->getOrder($orderId);
-
-
-            /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
             $checkoutHelper = pluginApp(CheckoutHelper::class);
+            $order = $orderHelper->getOrder($orderId);
             try {
                 $checkoutHelper->executePayment($order, $checkoutSessionId);
-            }catch (Exception $e){
+            } catch (Exception $e) {
                 $this->log(__CLASS__, __METHOD__, 'failed', '', [$e->getMessage(), $e->getTraceAsString()]);
                 $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.executePaymentError'));
             }
@@ -183,25 +170,19 @@ class FrontendController extends Controller
         $this->log(__CLASS__, __METHOD__, 'start', '👩 place order', [$this->request->all()]);
         /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
+        $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
 
         $checkoutSessionId = $this->request->get('amazonCheckoutSessionId');
-
-        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
-        $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
         $sessionStorageRepository->setSessionValue('amazonCheckoutSessionId', $checkoutSessionId);
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
         $this->log(__CLASS__, __METHOD__, 'info', '', [$checkoutSession]);
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
-            /** @var ConfigHelper $configHelper */
             $configHelper = pluginApp(ConfigHelper::class);
             return $this->response->redirectTo($configHelper->getAbsoluteUrl('place-order'));
         } else {
-            /** @var CheckoutHelper $checkoutHelper */
             $checkoutHelper = pluginApp(CheckoutHelper::class);
-
             $checkoutHelper->scheduleNotification($checkoutHelper->getTranslation('AmazonPay.pleaseSelectAnotherPaymentMethod'));
             $sessionStorageRepository->setSessionValue('amazonCheckoutSessionId', null);
-
             $checkoutHelper->resetPaymentMethod();
 
             $this->log(__CLASS__, __METHOD__, 'failed', '☹ Checkout failed - buyer cancelled or was declined');
@@ -212,19 +193,16 @@ class FrontendController extends Controller
     public function signIn()
     {
         $this->log(__CLASS__, __METHOD__, 'start', '👩 sign in');
-
         $buyerToken = $this->request->get('buyerToken');
 
         if (empty($buyerToken)) {
             return $this->response->redirectTo(''); //TODO error msg+log
         }
 
-        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-        $buyer = $apiHelper->getBuyer($buyerToken);
-
-        /** @var \AmazonPayCheckout\Helpers\AccountHelper $accountHelper */
         $accountHelper = pluginApp(AccountHelper::class);
+
+        $buyer = $apiHelper->getBuyer($buyerToken);
         $accountHelper->createAccountSession($buyer);
         return $this->response->redirectTo($this->getShopAccountUrl());
     }
@@ -232,7 +210,6 @@ class FrontendController extends Controller
     public function unsetPaymentMethod()
     {
         $this->log(__CLASS__, __METHOD__, 'start', '👩 unset payment method');
-        /** @var CheckoutHelper $checkoutHelper */
         $checkoutHelper = pluginApp(CheckoutHelper::class);
         $checkoutHelper->resetPaymentMethod();
         return $this->response->redirectTo($this->getShopCheckoutUrl());
@@ -240,11 +217,8 @@ class FrontendController extends Controller
 
     private function _cancelCheckoutStart(SessionStorageRepositoryContract $sessionStorageRepository, CheckoutHelper $checkoutHelper)
     {
-        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
-        /** @var FrontendPaymentMethodRepositoryContract $frontendPaymentMethodRepository */
         $frontendPaymentMethodRepository = pluginApp(FrontendPaymentMethodRepositoryContract::class);
-        /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
 
         $sessionStorageRepository->setSessionValue('amazonCheckoutSessionId', null);
@@ -283,44 +257,32 @@ class FrontendController extends Controller
 
     private function getShopCheckoutUrl()
     {
-        /** @var ConfigHelper $configHelper */
-        $configHelper = pluginApp(ConfigHelper::class);
-        return $configHelper->getShopCheckoutUrlRelative();
+        return pluginApp(ConfigHelper::class)->getShopCheckoutUrlRelative();
     }
 
     private function getShopAccountUrl()
     {
-        /** @var ShopUrls $shopUrls */
-        $shopUrls = pluginApp(ShopUrls::class);
-        return $shopUrls->myAccount;
+        return pluginApp(ShopUrls::class)->myAccount;
     }
 
     private function getOrderConfirmationUrl(Order $order)
     {
-        /** @var ShopUrls $shopUrls */
         $shopUrls = pluginApp(ShopUrls::class);
-        $url = $shopUrls->orderConfirmation($order->id);
-
-        /** @var OrderRepositoryContract $orderRepo */
         $orderRepo = pluginApp(OrderRepositoryContract::class);
-        /** @var AuthHelper $authHelper */
         $authHelper = pluginApp(AuthHelper::class);
 
+        $url = $shopUrls->orderConfirmation($order->id);
         $orderAccessKey = $authHelper->processUnguarded(
             function () use ($order, $orderRepo) {
                 return $orderRepo->generateAccessKey($order->id);
             }
         );
         $url .= (str_contains($url, '?') ? '&' : '/') . $orderAccessKey;
-        $url = str_replace('//', '/', $url);
-        return $url;
+        return str_replace('//', '/', $url);
     }
 
     private function getShopBasketUrl()
     {
-        /** @var ShopUrls $shopUrls */
-        $shopUrls = pluginApp(ShopUrls::class);
-        return $shopUrls->basket;
+        return pluginApp(ShopUrls::class)->basket;
     }
-
 }

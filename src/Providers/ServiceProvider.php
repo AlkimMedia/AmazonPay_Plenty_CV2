@@ -173,8 +173,6 @@ class ServiceProvider extends ServiceProviderParent
             function (LayoutContainer $container, $arguments) {
                 /** @var \AmazonPayCheckout\Helpers\CheckoutHelper $checkoutHelper */
                 $checkoutHelper = pluginApp(CheckoutHelper::class);
-                /** @var Translator $translator */
-                $translator = pluginApp(Translator::class);
                 if ($checkoutHelper->isCurrentPaymentMethodAmazonPay() && $checkoutHelper->hasOpenSession()) {
                     if ($shippingAddress = $checkoutHelper->getShippingAddress()) {
                         $container->addContent('

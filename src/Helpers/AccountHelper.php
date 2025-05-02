@@ -25,7 +25,6 @@ class AccountHelper
 
     public function isLoggedIn()
     {
-        /** @var \Plenty\Modules\Webshop\Contracts\ContactRepositoryContract $contactRepository */
         $contactRepository = pluginApp(WebshopContactRepositoryContract::class);
         return $contactRepository->getContactId() > 0;
     }
@@ -44,7 +43,6 @@ class AccountHelper
      */
     public function setShippingAddress($checkoutSession)
     {
-        /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
         $this->log(__CLASS__, __METHOD__, 'start');
         $formattedShippingAddress = null;
@@ -56,7 +54,6 @@ class AccountHelper
             }
             $formattedShippingAddress = $this->reformatAmazonAddress($checkoutSession->shippingAddress, $email);
             $shippingAddressObject = $this->createAddress($formattedShippingAddress, 'delivery');
-            /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
             $checkout = pluginApp(Checkout::class);
             $checkout->setCustomerShippingAddressId($shippingAddressObject->id);
         } catch (Exception $e) {
@@ -243,7 +240,6 @@ class AccountHelper
 
     protected function getCountryId($countryIso2)
     {
-        /** @var CountryRepositoryContract $countryContract */
         $countryContract = pluginApp(CountryRepositoryContract::class);
         $country = $countryContract->getCountryByIso($countryIso2, 'isoCode2');
         $this->log(__CLASS__, __METHOD__, 'result', '', [$countryIso2, $country]);
@@ -256,7 +252,6 @@ class AccountHelper
         $addressObject = null;
         $contactId = $this->getContactId();
         if ($contactId) {
-            /** @var ContactAddressRepositoryContract $contactAddressRepo */
             $contactAddressRepository = pluginApp(ContactAddressRepositoryContract::class);
             try {
                 $addressObject = $contactAddressRepository->createAddress($data, $contactId, ($type === 'delivery' ? AddressRelationType::DELIVERY_ADDRESS : AddressRelationType::BILLING_ADDRESS));
@@ -265,7 +260,6 @@ class AccountHelper
             }
             $this->log(__CLASS__, __METHOD__, 'completed', 'address for existing contact created', [$data, $addressObject]);
         } else {
-            /** @var AddressRepositoryContract $addressRepo */
             $addressRepository = pluginApp(AddressRepositoryContract::class);
             try {
                 $addressObject = $addressRepository->createAddress($data);
@@ -294,7 +288,6 @@ class AccountHelper
             $email = $checkoutSession->buyer->email;
             $formattedBillingAddress = $this->reformatAmazonAddress($checkoutSession->billingAddress, $email);
             $billingAddressObject = $this->createAddress($formattedBillingAddress, 'billing');
-            /** @var \Plenty\Modules\Frontend\Contracts\Checkout $checkout */
             $checkout = pluginApp(Checkout::class);
             $checkout->setCustomerInvoiceAddressId($billingAddressObject->id);
         } catch (Exception $e) {
@@ -314,7 +307,6 @@ class AccountHelper
     {
         $loginResult = $this->createAccountSession($checkoutSession->buyer, false);
         if (!$loginResult['success']) {
-            /** @var SessionStorageRepositoryContract $sessionStorageRepository */
             $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
             $sessionStorageRepository->setSessionValue(SessionStorageRepositoryContract::GUEST_EMAIL, $checkoutSession->buyer->email);
         }
@@ -331,10 +323,7 @@ class AccountHelper
     public function createAccountSession($buyer, $createAccount = true)
     {
 
-        /** @var ExternalAccessRepositoryContract $externalAccessRepository */
         $externalAccessRepository = pluginApp(ExternalAccessRepositoryContract::class);
-
-        /** @var ExternalAuthService $externalAuthService */
         $externalAuthService = pluginApp(ExternalAuthService::class);
 
         $this->log(__CLASS__, __METHOD__, 'start_login', '', [$buyer]);
@@ -360,7 +349,6 @@ class AccountHelper
             if (!is_object($externalAccessInfo) || empty($externalAccessInfo->contactId)) {
                 if (empty($contactIdByEmail)) {
                     if ($createAccount) {
-                        /** @var ContactRepositoryContract $contactRepository */
                         $contactRepository = pluginApp(ContactRepositoryContract::class);
 
                         $contactData = [
@@ -442,12 +430,9 @@ class AccountHelper
         return $return;
     }
 
-    public function getContactIdByEmail($email)
+    public function getContactIdByEmail(string $email)
     {
-        /** @var ContactRepositoryContract $contactRepository */
-        $contactRepository = pluginApp(ContactRepositoryContract::class);
-
-        return $contactRepository->getContactIdByEmail($email);
+        return pluginApp(ContactRepositoryContract::class)->getContactIdByEmail($email);
     }
 
 }

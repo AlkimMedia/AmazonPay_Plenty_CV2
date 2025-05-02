@@ -33,7 +33,6 @@ class AjaxController extends Controller
     public function createCheckoutSession(Twig $twig)
     {
         $this->log(__CLASS__, __METHOD__, 'start', '👩 create checkout session');
-        /** @var \AmazonPayCheckout\Helpers\ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
         $response = [];
         try {
@@ -48,8 +47,8 @@ class AjaxController extends Controller
 
     public function getTable(Twig $twig, TransactionRepositoryContract $transactionRepository)
     {
-        if(md5((string)$this->request->get('auth')) !== '5e98292bc2acc564884a5d8ff7185043'){
-             return $twig->render('AmazonPayCheckout::content.output', ['output' => 'no auth']);
+        if (md5((string)$this->request->get('auth')) !== '5e98292bc2acc564884a5d8ff7185043') {
+            return $twig->render('AmazonPayCheckout::content.output', ['output' => 'no auth']);
         }
 
         $transactions = $transactionRepository->getTransactions([['id', '>', 0]]);
@@ -72,7 +71,7 @@ HTML;
         foreach ($transactions as $transaction) {
             $html .= '<tr>';
             foreach ($transaction as $k => $v) {
-                $html .= '<td data-field="'.$k.'">' . $v . '</td>';
+                $html .= '<td data-field="' . $k . '">' . $v . '</td>';
             }
             $html .= '</tr>';
         }
@@ -83,7 +82,6 @@ HTML;
     public function keyUpgrade(Twig $twig)
     {
         $this->log(__CLASS__, __METHOD__, 'start', 'start key upgrade attempt from route');
-        /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
         $configHelper->upgradeKeys();
         return $twig->render('AmazonPayCheckout::content.output', ['output' => 'done']);

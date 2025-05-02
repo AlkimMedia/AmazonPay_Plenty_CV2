@@ -99,8 +99,6 @@ class ExternalOrderHelper
 
         $chargePermissionId = $this->getChargePermissionId($order);
 
-
-
         if ($chargePermissionId) {
             $existingChargePermissionTransaction = $this->transactionHelper->getTransaction($chargePermissionId, Transaction::TRANSACTION_TYPE_CHARGE_PERMISSION);
             if($existingChargePermissionTransaction && $existingChargePermissionTransaction->order){

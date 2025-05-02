@@ -3,11 +3,13 @@
 namespace AmazonPayCheckout\Helpers;
 
 use AmazonPayCheckout\Models\Transaction;
+use AmazonPayCheckout\Struct\CheckoutSession;
 use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
 use AmazonPayCheckout\Traits\TranslationTrait;
 use Exception;
 use Plenty\Modules\Account\Address\Contracts\AddressRepositoryContract;
+use Plenty\Modules\Account\Address\Models\Address;
 use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
 use Plenty\Modules\Basket\Models\Basket;
@@ -28,11 +30,12 @@ class CheckoutHelper
     use LoggingTrait;
     use TranslationTrait;
 
+    const EXCLUDED_COUNTRIES = ['EA'];
+
     public static $sessionStatusCache = [];
 
     public function getBasket(): Basket
     {
-        /** @var BasketRepositoryContract $basketRepository */
         $basketRepository = pluginApp(BasketRepositoryContract::class);
         $basket = $basketRepository->load();
 
@@ -50,40 +53,34 @@ class CheckoutHelper
                 $basket->basketAmount = $basket->basketAmountNet;
             }
         }
-
         return $basket;
     }
 
     public function getShippingCountries(): array
     {
-        /** @var CountryRepositoryContract $countryRepository */
         $countryRepository = pluginApp(CountryRepositoryContract::class);
         $countryList = $countryRepository->getActiveCountriesList();
-        $result = [];
+        $activeCountryCodes = [];
         /** @var Country $country */
         foreach ($countryList as $country) {
-            if (in_array($country->isoCode2, ['EA'])) {
+            if (in_array($country->isoCode2, self::EXCLUDED_COUNTRIES)) {
                 continue;
             }
-            $result[] = $country->isoCode2;
+            $activeCountryCodes[] = $country->isoCode2;
         }
-        return $result;
+        return $activeCountryCodes;
     }
 
     public function resetPaymentMethod()
     {
-        /** @var \Plenty\Modules\Frontend\PaymentMethod\Contracts\FrontendPaymentMethodRepositoryContract $frontendPaymentMethodRepository */
         $frontendPaymentMethodRepository = pluginApp(FrontendPaymentMethodRepositoryContract::class);
-        $paymentMethods = $frontendPaymentMethodRepository->getCurrentPaymentMethodsList();
-
-        /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
-
-        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
 
+        $paymentMethods = $frontendPaymentMethodRepository->getCurrentPaymentMethodsList();
         $amazonPayPaymentMethod = $paymentMethodHelper->createMopIfNotExistsAndReturnId();
         foreach ($paymentMethods as $paymentMethod) {
+            // Set to the first available non-AmazonPay payment method
             if ($paymentMethod->id != $amazonPayPaymentMethod) {
                 $checkout->setPaymentMethodId($paymentMethod->id);
                 break;
@@ -91,17 +88,10 @@ class CheckoutHelper
         }
     }
 
-    /**
-     * @param Order $order
-     * @param string $checkoutSessionId
-     * @return void
-     * @throws Exception
-     */
     public function executePayment(Order $order, string $checkoutSessionId): void
     {
         $this->log(__CLASS__, __METHOD__, 'start', '', ['order' => $order, 'session' => $checkoutSessionId]);
 
-        /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
 
@@ -109,6 +99,11 @@ class CheckoutHelper
             $this->log(__CLASS__, __METHOD__, 'checkoutSessionIssue', '', ['checkoutSession' => $checkoutSession, 'order' => $order], true);
             throw new Exception('Checkout Session is empty or not open!');
         }
+
+        //compare address
+        $this->log(__CLASS__, __METHOD__, 'shippinAddress', '', ['address' =>  $order->deliveryAddress, 'type' => get_class($order->deliveryAddress)]);
+        $this->validateShippingAddress($checkoutSession, $order->deliveryAddress);
+
         $totalAmount = $order->amounts[0]->invoiceTotal - $order->amounts[0]->giftCardAmount;
         $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $totalAmount, $order->amounts[0]->currency);
 
@@ -117,11 +112,14 @@ class CheckoutHelper
             throw new Exception('Checkout Session is empty or not open!');
         }
 
+
+
+
+
         try {
             //from this point we do not want to throw an exception anymore
             $this->updateChargePermissionWithPlentyOrderId($checkoutSession->chargePermissionId, (int)$order->id);
 
-            /** @var \AmazonPayCheckout\Helpers\OrderHelper $orderHelper */
             $orderHelper = pluginApp(OrderHelper::class);
 
             $payment = $orderHelper->createPaymentObject(
@@ -136,7 +134,6 @@ class CheckoutHelper
 
             $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $order);
             $orderHelper->setOrderExternalId($order->id, $checkoutSession->chargePermissionId);
-            /** @var \AmazonPayCheckout\Helpers\TransactionHelper $transactionHelper */
             $transactionHelper = pluginApp(TransactionHelper::class);
 
             if ($checkoutSession->chargeId) {
@@ -155,14 +152,11 @@ class CheckoutHelper
         } catch (Exception $e) {
             $this->log(__CLASS__, __METHOD__, 'error', '', [$e->getMessage(), $order], true);
         }
-
-
     }
 
-    public function updateChargePermissionWithPlentyOrderId(string $chargePermissionId, int $orderId)
+    protected function updateChargePermissionWithPlentyOrderId(string $chargePermissionId, int $orderId): void
     {
         try {
-            /** @var ApiHelper $apiHelper */
             $apiHelper = pluginApp(ApiHelper::class);
             $response = $apiHelper->updateChargePermission($chargePermissionId, $orderId);
             $this->log(__CLASS__, __METHOD__, 'result', '', [$response]);
@@ -174,9 +168,7 @@ class CheckoutHelper
 
     public function setCurrentPaymentMethodId()
     {
-        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
-        /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
 
         return $checkout->setPaymentMethodId($paymentMethodHelper->createMopIfNotExistsAndReturnId());
@@ -187,61 +179,50 @@ class CheckoutHelper
      */
     public function getShippingAddress()
     {
-        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
         $shippingAddressId = $checkout->getCustomerShippingAddressId();
         if ($shippingAddressId) {
-            /** @var AddressRepositoryContract $addressRepository */
             $addressRepository = pluginApp(AddressRepositoryContract::class);
             return $addressRepository->findAddressById($shippingAddressId);
         }
-
         return null;
     }
 
     public function isCurrentPaymentMethodAmazonPay(): bool
     {
-        /** @var PaymentMethodHelper $paymentMethodHelper */
         $paymentMethodHelper = pluginApp(PaymentMethodHelper::class);
 
         if ($paymentMethodHelper->createMopIfNotExistsAndReturnId() != $this->getCurrentPaymentMethodId()) {
             return false;
         }
 
-        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
         $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
 
         $this->log(__CLASS__, __METHOD__, 'session', '', ['sessionId' => $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId')]);
         if (empty($sessionStorageRepository->getSessionValue('amazonCheckoutSessionId'))) {
             return false;
         }
-
         return true;
     }
 
-    public function getCurrentPaymentMethodId(): int
+    protected function getCurrentPaymentMethodId(): int
     {
-        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
-
         return $checkout->getPaymentMethodId();
     }
 
     public function hasOpenSession(): bool
     {
-        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
         $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
         $checkoutSessionId = $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId');
         if (empty($checkoutSessionId)) {
             return false;
         }
-
         if (!empty(self::$sessionStatusCache[$checkoutSessionId])) {
             return true;
         }
         /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
             self::$sessionStatusCache[$checkoutSessionId] = true;
@@ -255,16 +236,13 @@ class CheckoutHelper
      */
     public function getOpenSession()
     {
-        /** @var SessionStorageRepositoryContract $sessionStorageRepository */
         $sessionStorageRepository = pluginApp(SessionStorageRepositoryContract::class);
         $checkoutSessionId = $sessionStorageRepository->getSessionValue('amazonCheckoutSessionId');
         if (empty($checkoutSessionId)) {
             return null;
         }
-
         /** @var ApiHelper $apiHelper */
         $apiHelper = pluginApp(ApiHelper::class);
-
         $checkoutSession = $apiHelper->getCheckoutSession($checkoutSessionId);
         if ($checkoutSession->statusDetails->state === StatusDetails::OPEN) {
             return $checkoutSession;
@@ -285,25 +263,17 @@ class CheckoutHelper
 
     public function setToSession($key, $value)
     {
-        /** @var FrontendSessionStorageFactoryContract $session */
         $session = pluginApp(FrontendSessionStorageFactoryContract::class);
         $session->getPlugin()->setValue($key, $value);
     }
 
-    /**
-     * @param Order|null $existingOrder
-     * @return array
-     */
-    public function getCheckoutSessionDataForDirectCheckout($existingOrder = null): array
+    public function getCheckoutSessionDataForDirectCheckout(?Order $existingOrder = null): array
     {
-        /** @var AddressRepositoryContract $addressRepository */
         $addressRepository = pluginApp(AddressRepositoryContract::class);
-        /** @var CheckoutHelper $checkoutHelper */
         $checkoutHelper = pluginApp(CheckoutHelper::class);
-        /** @var ConfigHelper $configHelper */
         $configHelper = pluginApp(ConfigHelper::class);
-        /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
+
         $basket = $checkoutHelper->getBasket();
         if ($existingOrder) {
             /** @var OrderHelper $orderHelper */
@@ -315,15 +285,11 @@ class CheckoutHelper
 
         $this->log(__CLASS__, __METHOD__, 'addressIds', '', ['shippingAddressId' => $shippingAddressId]);
 
-        /** @var AuthHelper $authHelper */
         $authHelper = pluginApp(AuthHelper::class);
-
         $shippingAddress = $authHelper->processUnguarded(function () use ($addressRepository, $shippingAddressId) {
             return $addressRepository->findAddressById($shippingAddressId);
         });
 
-
-        /** @var CountryRepositoryContract $countryRepository */
         $countryRepository = pluginApp(CountryRepositoryContract::class);
         $country = $countryRepository->getCountryById($shippingAddress->countryId);
 
@@ -358,14 +324,13 @@ class CheckoutHelper
                 'countryCode' => $country->isoCode2,
                 'phoneNumber' => '00000',
             ],
-
         ];
     }
 
     public function hasAvailableShippingMethod(): bool
     {
         $shippingCountryId = $this->getShippingCountryId();
-        if($shippingCountryId === 0) {
+        if ($shippingCountryId === 0) {
             return false;
         }
 
@@ -390,7 +355,6 @@ class CheckoutHelper
             } elseif (!empty($shippingMethod['excludedPaymentMethodIds'])) {
                 $excludedMethods = $shippingMethod['excludedPaymentMethodIds'];
             }
-
             if (empty($excludedMethods) || !in_array($paymentMethodId, $excludedMethods)) {
                 return true;
             }
@@ -398,12 +362,62 @@ class CheckoutHelper
         return false;
     }
 
-    public function getShippingCountryId(): int
+    protected function getShippingCountryId(): int
     {
         /** @var Checkout $checkout */
         $checkout = pluginApp(Checkout::class);
         return (int)$checkout->getShippingCountryId();
     }
 
+    /**
+     * @param CheckoutSession $amazonPayCheckoutSession
+     * @param Checkout $plentyCheckout
+     * @throws Exception
+     */
+    public function validateShippingAddress($amazonPayCheckoutSession, Address $plentyShippingAddress): void
+    {
+        $amazonPayShippingAddress = $amazonPayCheckoutSession->shippingAddress;
+        if (empty($amazonPayShippingAddress)) {
+            throw new Exception('Amazon Pay shipping address not found');
+        }
 
+        if (empty($plentyShippingAddress)) {
+            throw new Exception('Plenty Shipping address not found');
+        }
+
+        $countryRepository = pluginApp(CountryRepositoryContract::class);
+        $plentyShippingAddressCountry = $countryRepository->getCountryById($plentyShippingAddress->countryId);
+
+        if ($amazonPayShippingAddress->countryCode !== $plentyShippingAddressCountry->isoCode2) {
+            throw new Exception('Country code does not match: ' . $amazonPayShippingAddress->countryCode . ' || ' . $plentyShippingAddressCountry->isoCode2);
+        }
+
+        if ($amazonPayShippingAddress->postalCode !== $plentyShippingAddress->postalCode) {
+            throw new Exception('Postal code does not match: ' . $amazonPayShippingAddress->postalCode . ' || ' . $plentyShippingAddress->postalCode);
+        }
+
+        if ($amazonPayShippingAddress->city !== $plentyShippingAddress->town) {
+            throw new Exception('City does not match: ' . $amazonPayShippingAddress->city . ' || ' . $plentyShippingAddress->town);
+        }
+        $amazonPayAddressLinesCombined = $amazonPayShippingAddress->addressLine1 . $amazonPayShippingAddress->addressLine2 . $amazonPayShippingAddress->addressLine3;
+
+        if (!empty($plentyShippingAddress->address1) && stripos($amazonPayAddressLinesCombined, $plentyShippingAddress->address1) === false) {
+            throw new Exception('Address line 1 does not match: ' . $amazonPayAddressLinesCombined . ' || ' . $plentyShippingAddress->address1);
+        }
+        if (!empty($plentyShippingAddress->address2) && stripos($amazonPayAddressLinesCombined, $plentyShippingAddress->address2) === false) {
+            throw new Exception('Address line 2 does not match: ' . $amazonPayAddressLinesCombined . ' || ' . $plentyShippingAddress->address2);
+        }
+    }
+
+    public function getCurrentCheckoutShippingAddress(Checkout $plentyCheckout){
+        $shippingAddressId = $plentyCheckout->getCustomerShippingAddressId() ?? $plentyCheckout->getCustomerInvoiceAddressId();
+        $addressRepository = pluginApp(AddressRepositoryContract::class);
+
+        $authHelper = pluginApp(AuthHelper::class);
+        /** @var Address $plentyShippingAddress */
+        $plentyShippingAddress = $authHelper->processUnguarded(function () use ($addressRepository, $shippingAddressId) {
+            return $addressRepository->findAddressById($shippingAddressId);
+        });
+        return $plentyShippingAddress;
+    }
 }
