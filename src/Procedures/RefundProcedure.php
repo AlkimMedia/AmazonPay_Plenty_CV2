@@ -26,11 +26,12 @@ class RefundProcedure
             $procedureOrderObject = $eventTriggered->getOrder();
             $this->log(__CLASS__, __METHOD__, 'start', '', [$procedureOrderObject]);
             $orderId = 0;
-            $amount = 0;
+            /** @var OrderHelper $orderHelper */
+            $orderHelper = pluginApp(OrderHelper::class);
+
             switch ($procedureOrderObject->typeId) {
                 case OrderType::TYPE_CREDIT_NOTE:
                     $parentOrder = $procedureOrderObject->parentOrder;
-                    $amount = $procedureOrderObject->amounts[0]->invoiceTotal - $procedureOrderObject->amounts[0]->giftCardAmount;
 
                     $this->log(__CLASS__, __METHOD__, 'credit_note_info', '', [
                         'orderReferences' => $procedureOrderObject->orderReferences,
@@ -52,15 +53,33 @@ class RefundProcedure
                     break;
                 case OrderType::TYPE_SALES_ORDER:
                     $orderId = $procedureOrderObject->id;
-                    $amount = $procedureOrderObject->amounts[0]->invoiceTotal - $procedureOrderObject->amounts[0]->giftCardAmount;
                     break;
             }
-            $this->log(__CLASS__, __METHOD__, 'info', '', ['orderId' => $orderId, 'procedureOrderObjectId' => $procedureOrderObject->id, 'amount' => $amount]);
+            $this->log(__CLASS__, __METHOD__, 'info', '', ['orderId' => $orderId, 'procedureOrderObjectId' => $procedureOrderObject->id]);
             if (empty($orderId)) {
                 throw new Exception('Amazon Pay Refund failed! The given order is invalid!');
             }
             /** @var TransactionRepository $transactionRepository */
             $transactionRepository = pluginApp(TransactionRepositoryContract::class);
+
+            $chargePermissionTransactions = $transactionRepository->getTransactions([
+                ['order', '=', $orderId],
+                ['type', '=', 'ChargePermission']
+            ]);
+
+            $this->log(__CLASS__, __METHOD__, 'amounts_pre', '', ['amounts' => $procedureOrderObject->amounts]);
+            if(!empty($chargePermissionTransactions) && isset($chargePermissionTransactions[0])) {
+                $chargePermissionTransaction = $chargePermissionTransactions[0];
+                $this->log(__CLASS__, __METHOD__, 'amounts_charge_permission', '', ['chargePermissionTransaction' => $chargePermissionTransaction]);
+                $currency = $chargePermissionTransaction->currency;
+                $amounts = $orderHelper->getOrderAmountObjectByCurrency($procedureOrderObject, $currency);
+            }else{
+                //fallback
+                $amounts = $procedureOrderObject->amounts[0];
+            }
+
+            $amount = $amounts->invoiceTotal - $amounts->giftCardAmount;
+            $this->log(__CLASS__, __METHOD__, 'amount_final', '', ['amount' => $amount]);
             $captures = $transactionRepository->getTransactions([
                 ['order', '=', $orderId],
                 ['type', '=', 'Charge'],
@@ -87,8 +106,7 @@ class RefundProcedure
                 if($refund) {
                     //register payment information
                     /** @var Refund $refund */
-                    /** @var OrderHelper $orderHelper */
-                    $orderHelper = pluginApp(OrderHelper::class);
+
                     $payment = $orderHelper->createPaymentObject(
                         $refund->refundAmount->amount,
                         Payment::STATUS_APPROVED,

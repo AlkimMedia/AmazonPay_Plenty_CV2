@@ -3,9 +3,11 @@
 namespace AmazonPayCheckout\Procedures;
 
 use AmazonPayCheckout\Helpers\ApiHelper;
+use AmazonPayCheckout\Helpers\OrderHelper;
 use AmazonPayCheckout\Helpers\TransactionHelper;
 use AmazonPayCheckout\Models\Transaction;
 use AmazonPayCheckout\Repositories\TransactionRepository;
+use AmazonPayCheckout\Struct\Charge;
 use AmazonPayCheckout\Struct\StatusDetails;
 use AmazonPayCheckout\Traits\LoggingTrait;
 use Exception;
@@ -19,6 +21,7 @@ class CaptureProcedure
     public function run(EventProceduresTriggered $eventTriggered, TransactionRepository $transactionRepository, TransactionHelper $transactionHelper, ApiHelper $apiHelper)
     {
         $order = $eventTriggered->getOrder();
+
         $this->log(__CLASS__, __METHOD__, 'start', '', [$order]);
         switch ($order->typeId) {
             case OrderType::TYPE_SALES_ORDER:
@@ -65,9 +68,19 @@ class CaptureProcedure
         }
         */
 
+        /** @var OrderHelper $orderHelper */
+        $orderHelper = pluginApp(OrderHelper::class);
+        /** @var Transaction $firstAuthorizedCharge */
+        if( $firstAuthorizedCharge = reset($authorizedCharges)){
+            $orderAmounts = $orderHelper->getOrderAmountObjectByCurrency($order, $firstAuthorizedCharge->currency);
+        }
+        if(empty($orderAmounts)){
+            $orderAmounts = $order->amount;
+        }
+
         foreach ($authorizedCharges as $authorizedCharge) {
-            $this->log(__CLASS__, __METHOD__, 'before_capture', '', [$authorizedCharge, $order->amount]);
-            $amountToCapture = min($authorizedCharge->amount, $order->amount->invoiceTotal - $order->amount->giftCardAmount);
+            $this->log(__CLASS__, __METHOD__, 'before_capture', '', ['charge'=>$authorizedCharge, 'amounts'=>$orderAmounts]);
+            $amountToCapture = min($authorizedCharge->amount, $orderAmounts->invoiceTotal - $orderAmounts->giftCardAmount);
             $capturedCharge = $apiHelper->capture($authorizedCharge->reference, $amountToCapture);
             if ($capturedCharge) {
                 $transactionHelper->persistTransaction($capturedCharge, Transaction::TRANSACTION_TYPE_CHARGE);

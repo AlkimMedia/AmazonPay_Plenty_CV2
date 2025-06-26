@@ -102,6 +102,10 @@ var PlentyAmazonPay = {
                             currencyCode: window.ceresStore.state.basket.data.currency || ''
                         };
                     }
+                    //TODO: check for other options, currently other currencies result in an error
+                    if(buttonConfig.estimatedOrderAmount && buttonConfig.estimatedOrderAmount.currencyCode !== buttonConfig.ledgerCurrency){
+                        buttonConfig.estimatedOrderAmount = null;
+                    }
                     amazon.Pay.renderButton('#' + id, buttonConfig);
                 }
             }
@@ -160,6 +164,11 @@ var PlentyAmazonPay = {
                 placement: 'Checkout'
             });
 
+            //TODO: check for other options, currently other currencies result in an error
+            if(hiddenButton.estimatedOrderAmount && hiddenButton.estimatedOrderAmount.currencyCode !== hiddenButton.ledgerCurrency){
+                hiddenButton.estimatedOrderAmount = null;
+            }
+
             hiddenButton.initCheckout({
                 createCheckoutSessionConfig: createCheckoutSessionConfig
             });
@@ -193,6 +202,12 @@ var PlentyAmazonPay = {
                             currencyCode: window.ceresStore.state.basket.data.currency || ''
                         };
                     }
+
+                    //TODO: check for other options, currently other currencies result in an error
+                    if(buttonConfig.estimatedOrderAmount && buttonConfig.estimatedOrderAmount.currencyCode !== buttonConfig.ledgerCurrency){
+                        buttonConfig.estimatedOrderAmount = null;
+                    }
+
                     const _button = amazon.Pay.renderButton('#' + id, buttonConfig);
 
                     _button.onClick(function () {

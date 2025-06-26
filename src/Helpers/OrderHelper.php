@@ -268,4 +268,17 @@ class OrderHelper
         });
     }
 
+    public function getOrderAmountObjectByCurrency(Order $order, ?string $currency = null){
+        if(count($order->amounts) === 1){
+            return $order->amounts[0];
+        }
+        foreach($order->amounts as $amount){
+            if($amount->currency === $currency){
+                return $amount;
+            }
+        }
+        // try our luck
+        return $order->amounts[0];
+    }
+
 }

@@ -101,11 +101,14 @@ class CheckoutHelper
         }
 
         //compare address
-        $this->log(__CLASS__, __METHOD__, 'shippinAddress', '', ['address' =>  $order->deliveryAddress, 'type' => get_class($order->deliveryAddress)]);
+        $this->log(__CLASS__, __METHOD__, 'shippingAddress', '', ['address' =>  $order->deliveryAddress, 'type' => get_class($order->deliveryAddress)]);
         $this->validateShippingAddress($checkoutSession, $order->deliveryAddress);
 
-        $totalAmount = $order->amounts[0]->invoiceTotal - $order->amounts[0]->giftCardAmount;
-        $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $totalAmount, $order->amounts[0]->currency);
+        $orderHelper = pluginApp(OrderHelper::class);
+        $amount = $orderHelper->getOrderAmountObjectByCurrency($order, $checkoutSession->paymentDetails->presentmentCurrency);
+        $this->log(__CLASS__, __METHOD__, 'amount', '', ['amount' => $amount, 'currency' => $checkoutSession->paymentDetails->presentmentCurrency]);
+        $totalAmount = $amount->invoiceTotal - $amount->giftCardAmount;
+        $checkoutSession = $apiHelper->completeCheckoutSession($checkoutSessionId, $totalAmount, $amount->currency);
 
         if ($checkoutSession->statusDetails->state !== StatusDetails::COMPLETED) {
             $this->log(__CLASS__, __METHOD__, 'checkoutSessionStatusIssue', '', ['checkoutSession' => $checkoutSession, 'order' => $order], true);
@@ -129,7 +132,7 @@ class CheckoutHelper
                 'Checkout Session Completed',
                 null, Payment::PAYMENT_TYPE_CREDIT,
                 Payment::TRANSACTION_TYPE_PROVISIONAL_POSTING,
-                $order->amounts[0]->currency
+                $amount->currency
             );
 
             $orderHelper->assignPlentyPaymentToPlentyOrder($payment, $order);
@@ -279,6 +282,7 @@ class CheckoutHelper
             /** @var OrderHelper $orderHelper */
             $orderHelper = pluginApp(OrderHelper::class);
             $shippingAddressId = $orderHelper->getShippingAddressId($existingOrder);
+            $existingOrderAmount = $existingOrder->amounts[1] ?? $existingOrder->amounts[0];
         } else {
             $shippingAddressId = $checkout->getCustomerShippingAddressId() ?? $checkout->getCustomerInvoiceAddressId();
         }
@@ -308,8 +312,8 @@ class CheckoutHelper
                 'paymentIntent' => 'Authorize',
                 'canHandlePendingAuthorization' => $configHelper->getConfigurationValue('authorizationMode') !== 'fast_auth',
                 'chargeAmount' => [
-                    'amount' => $existingOrder ? ($existingOrder->amounts[0]->invoiceTotal - $existingOrder->amounts[0]->giftCardAmount) : $basket->basketAmount,
-                    'currencyCode' => $existingOrder ? $existingOrder->amounts[0]->currency : $basket->currency,
+                    'amount' => $existingOrder ? ($existingOrderAmount->invoiceTotal - $existingOrderAmount->giftCardAmount) : $basket->basketAmount,
+                    'currencyCode' => $existingOrder ? $existingOrderAmount->currency : $basket->currency,
                 ],
             ],
             'merchantMetadata' => [
